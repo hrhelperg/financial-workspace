@@ -1,30 +1,38 @@
+import { formatCurrency, getInvoiceBalance, initialClients, initialInvoices } from "./mvp";
+
+const openInvoices = initialInvoices.filter((invoice) => invoice.status === "sent" || invoice.status === "overdue");
+const openReceivables = openInvoices.reduce((sum, invoice) => sum + getInvoiceBalance(invoice), 0);
+const overdueTotal = initialInvoices
+  .filter((invoice) => invoice.status === "overdue")
+  .reduce((sum, invoice) => sum + getInvoiceBalance(invoice), 0);
+
 export const dashboardMetrics = [
   {
-    title: "Open AR",
-    value: "$48,220",
-    note: "+12.4% from last month",
-    icon: "dollar",
+    title: "Clients",
+    value: String(initialClients.length),
+    note: "Active workspace relationships",
+    icon: "clients",
     tone: "green"
   },
   {
-    title: "Cash in 30d",
-    value: "$36,900",
-    note: "7 scheduled payments",
-    icon: "trend",
+    title: "Open invoices",
+    value: String(openInvoices.length),
+    note: "Sent or overdue invoices",
+    icon: "invoices",
     tone: "blue"
   },
   {
-    title: "Expenses",
-    value: "$12,430",
-    note: "62% already reconciled",
-    icon: "wallet",
+    title: "Receivables",
+    value: formatCurrency(openReceivables),
+    note: "Balance still to collect",
+    icon: "dollar",
     tone: "amber"
   },
   {
-    title: "Automation queue",
-    value: "8 events",
-    note: "2 rules ready for Inngest",
-    icon: "automation",
+    title: "Overdue",
+    value: formatCurrency(overdueTotal),
+    note: "Needs follow-up",
+    icon: "overdue",
     tone: "rose"
   }
 ] as const;

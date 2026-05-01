@@ -20,7 +20,9 @@ const timestamps = () => ({
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
-export const invoiceStatusEnum = pgEnum("invoice_status", ["draft", "sent", "paid", "overdue", "void"]);
+export const invoiceStatusValues = ["draft", "sent", "paid", "overdue", "cancelled"] as const;
+
+export const invoiceStatusEnum = pgEnum("invoice_status", invoiceStatusValues);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "completed", "failed", "refunded"]);
 export const paymentMethodEnum = pgEnum("payment_method", ["bank_transfer", "card", "cash", "check", "other"]);
 export const expenseStatusEnum = pgEnum("expense_status", ["draft", "submitted", "approved", "rejected", "paid"]);
@@ -405,3 +407,24 @@ export const automationEventsRelations = relations(automationEvents, ({ one }) =
     references: [automationRules.id]
   })
 }));
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Workspace = typeof workspaces.$inferSelect;
+export type NewWorkspace = typeof workspaces.$inferInsert;
+export type Client = typeof clients.$inferSelect;
+export type NewClient = typeof clients.$inferInsert;
+export type Invoice = typeof invoices.$inferSelect;
+export type NewInvoice = typeof invoices.$inferInsert;
+export type InvoiceItem = typeof invoiceItems.$inferSelect;
+export type NewInvoiceItem = typeof invoiceItems.$inferInsert;
+export type Payment = typeof payments.$inferSelect;
+export type NewPayment = typeof payments.$inferInsert;
+export type Expense = typeof expenses.$inferSelect;
+export type NewExpense = typeof expenses.$inferInsert;
+export type Document = typeof documents.$inferSelect;
+export type NewDocument = typeof documents.$inferInsert;
+export type AutomationRule = typeof automationRules.$inferSelect;
+export type NewAutomationRule = typeof automationRules.$inferInsert;
+export type AutomationEvent = typeof automationEvents.$inferSelect;
+export type NewAutomationEvent = typeof automationEvents.$inferInsert;

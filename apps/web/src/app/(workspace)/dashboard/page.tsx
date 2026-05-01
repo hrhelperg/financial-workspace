@@ -1,4 +1,4 @@
-import { ArrowUpRight, CheckCircle2, Clock3, DollarSign, ReceiptText, WalletCards, Zap } from "lucide-react";
+import { BriefcaseBusiness, CheckCircle2, Clock3, DollarSign, ReceiptText, Timer } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
   cashOutlook,
@@ -12,10 +12,10 @@ import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
 
 const metricIcons: Record<DashboardMetricIcon, LucideIcon> = {
-  automation: Zap,
+  clients: BriefcaseBusiness,
   dollar: DollarSign,
-  trend: ArrowUpRight,
-  wallet: WalletCards
+  invoices: ReceiptText,
+  overdue: Timer
 };
 
 export default function DashboardPage() {

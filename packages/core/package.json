@@ -7,12 +7,16 @@
   "exports": {
     ".": "./src/index.ts",
     "./dashboard": "./src/dashboard.ts",
+    "./mvp": "./src/mvp.ts",
     "./navigation": "./src/navigation.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@financial-workspace/db": "*"
   },
   "devDependencies": {
     "typescript": "latest"

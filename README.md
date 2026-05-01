@@ -66,6 +66,14 @@ npm run db:studio
 - Documents for contracts, receipts, invoices, and financial records.
 - Automation rules and events for future workflow orchestration.
 
+## Current MVP
+
+- Clients list with a create client form.
+- Invoices list with a create invoice form.
+- Itemized invoice lines with quantity, unit price, tax rate, and calculated totals.
+- Invoice statuses: `draft`, `sent`, `paid`, `overdue`, `cancelled`.
+- Dashboard summary cards for clients, open invoices, receivables, and overdue balance.
+
 ## Database
 
 The Drizzle schema currently defines:
