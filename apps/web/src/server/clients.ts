@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { clients, db, type Client } from "@financial-workspace/db";
 import { requireWorkspaceMember, requireWorkspaceRole } from "./workspace";
 
@@ -22,7 +22,7 @@ export async function listClients(): Promise<ClientListItem[]> {
       createdAt: clients.createdAt
     })
     .from(clients)
-    .where(eq(clients.workspaceId, workspace.id))
+    .where(and(eq(clients.workspaceId, workspace.id), isNull(clients.deletedAt)))
     .orderBy(desc(clients.createdAt));
 }
 
@@ -57,7 +57,7 @@ export async function getClientById(id: string): Promise<Client | undefined> {
   const [row] = await db
     .select()
     .from(clients)
-    .where(and(eq(clients.workspaceId, workspace.id), eq(clients.id, id)))
+    .where(and(eq(clients.workspaceId, workspace.id), eq(clients.id, id), isNull(clients.deletedAt)))
     .limit(1);
 
   return row;
