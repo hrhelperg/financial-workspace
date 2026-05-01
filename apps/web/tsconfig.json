@@ -9,8 +9,12 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
+      "@financial-workspace/core": ["../../packages/core/src/index.ts"],
+      "@financial-workspace/core/*": ["../../packages/core/src/*"],
       "@financial-workspace/db": ["../../packages/db/src/index.ts"],
-      "@financial-workspace/db/*": ["../../packages/db/src/*"]
+      "@financial-workspace/db/*": ["../../packages/db/src/*"],
+      "@financial-workspace/ui": ["../../packages/ui/src/index.ts"],
+      "@financial-workspace/ui/*": ["../../packages/ui/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@financial-workspace/core": "*",
     "@financial-workspace/db": "*",
+    "@financial-workspace/ui": "*",
     "inngest": "latest",
     "lucide-react": "latest",
     "next": "latest",

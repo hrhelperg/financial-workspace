@@ -20,6 +20,8 @@ This is a TypeScript monorepo with a Next.js web app, Tailwind CSS UI, Drizzle O
 
 - `apps/web`: Next.js App Router application with dashboard routes and placeholder workspace UI.
 - `packages/db`: Drizzle ORM package with the initial PostgreSQL schema and database client factory.
+- `packages/ui`: Shared React UI primitives for the workspace interface.
+- `packages/core`: Shared product constants, route metadata, and workspace domain data.
 
 ## Getting started
 
@@ -52,6 +54,7 @@ npm run db:studio
 - `/expenses`
 - `/cashflow`
 - `/documents`
+- `/settings`
 
 ## Product areas
 

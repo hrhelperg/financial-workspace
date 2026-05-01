@@ -11,19 +11,23 @@ import {
   LayoutDashboard,
   ReceiptText,
   Search,
+  Settings,
   WalletCards,
   Zap
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { workspaceNavigation, type WorkspaceRouteIcon } from "@financial-workspace/core";
 import { cn } from "@/lib/utils";
 
-const navigation = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/clients", label: "Clients", icon: BriefcaseBusiness },
-  { href: "/invoices", label: "Invoices", icon: ReceiptText },
-  { href: "/expenses", label: "Expenses", icon: WalletCards },
-  { href: "/cashflow", label: "Cashflow", icon: BarChart3 },
-  { href: "/documents", label: "Documents", icon: FolderOpen }
-];
+const iconMap: Record<WorkspaceRouteIcon, LucideIcon> = {
+  cashflow: BarChart3,
+  clients: BriefcaseBusiness,
+  dashboard: LayoutDashboard,
+  documents: FolderOpen,
+  expenses: WalletCards,
+  invoices: ReceiptText,
+  settings: Settings
+};
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -42,8 +46,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
 
         <nav className="mt-8 space-y-1">
-          {navigation.map((item) => {
-            const Icon = item.icon;
+          {workspaceNavigation.map((item) => {
+            const Icon = iconMap[item.icon];
             const isActive = pathname === item.href;
 
             return (
@@ -103,8 +107,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:hidden">
-            {navigation.map((item) => {
-              const Icon = item.icon;
+            {workspaceNavigation.map((item) => {
+              const Icon = iconMap[item.icon];
               const isActive = pathname === item.href;
 
               return (
