@@ -1,4 +1,4 @@
-import { index, integer, numeric, pgTable, text, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { index, integer, numeric, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { clientStatusEnum, emptyJson, paymentRiskLevelEnum, timestamps } from "./enums";
 import { users } from "./users";
 import { workspaces } from "./workspaces";
@@ -25,9 +25,11 @@ export const clients = pgTable(
     notes: text("notes"),
     ownerUserId: uuid("owner_user_id").references(() => users.id, { onDelete: "set null" }),
     metadata: emptyJson<Record<string, unknown>>("metadata"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     ...timestamps()
   },
   (table) => ({
+    deletedAtIdx: index("clients_deleted_at_idx").on(table.deletedAt),
     emailIdx: index("clients_email_idx").on(table.email),
     ownerIdx: index("clients_owner_user_id_idx").on(table.ownerUserId),
     statusIdx: index("clients_status_idx").on(table.status),

@@ -1,4 +1,4 @@
-import { index, integer, pgTable, text, uuid, varchar } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { clients } from "./clients";
 import {
   documentStatusEnum,
@@ -36,10 +36,12 @@ export const documents = pgTable(
     checksum: varchar("checksum", { length: 255 }),
     parsedMetadata: emptyJson<Record<string, unknown>>("parsed_metadata"),
     metadata: emptyJson<Record<string, unknown>>("metadata"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     ...timestamps()
   },
   (table) => ({
     clientIdx: index("documents_client_id_idx").on(table.clientId),
+    deletedAtIdx: index("documents_deleted_at_idx").on(table.deletedAt),
     invoiceIdx: index("documents_invoice_id_idx").on(table.invoiceId),
     relatedEntityIdx: index("documents_related_entity_idx").on(table.relatedEntityType, table.relatedEntityId),
     statusIdx: index("documents_status_idx").on(table.status),

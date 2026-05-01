@@ -7,6 +7,7 @@ export * from "./documents";
 export * from "./enums";
 export * from "./events";
 export * from "./expenses";
+export * from "./idempotency";
 export * from "./invoices";
 export * from "./notes";
 export * from "./payments";
