@@ -16,8 +16,9 @@ export default function CashflowPage() {
         eyebrow="Forecast"
         title="Cashflow"
         description="Thirty-day outlook with $24,470 projected net movement."
-        actionLabel="Review calendar"
+        actionLabel="Yearly forecast"
         actionIcon={CalendarDays}
+        actionHref="/cashflow/forecast"
       />
 
       <div className="grid gap-4 md:grid-cols-3">

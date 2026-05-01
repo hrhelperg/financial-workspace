@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, DollarSign, ReceiptText, Timer, WalletCards } from "lucide-react";
+import { BriefcaseBusiness, CalendarDays, DollarSign, ReceiptText, Timer, WalletCards } from "lucide-react";
 import { Panel, PanelHeader } from "@financial-workspace/ui";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
@@ -88,37 +88,68 @@ export default async function DashboardPage() {
           </div>
         </Panel>
 
-        <Panel>
-          <PanelHeader title="Cashflow base" description="Unpaid incoming minus unpaid outgoing." />
-          <div className="mt-5 flex items-start justify-between gap-4">
-            <div>
-              <p className="text-3xl font-semibold tracking-normal text-[#1f2933]">
-                {formatCurrency(metrics.projectedBalance)}
-              </p>
-              <p className="mt-2 text-sm text-[#647067]">
-                Projected balance from unpaid invoices.
-              </p>
+        <div className="space-y-6">
+          <Panel>
+            <PanelHeader title="Cashflow base" description="Unpaid incoming minus unpaid outgoing." />
+            <div className="mt-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-3xl font-semibold tracking-normal text-[#1f2933]">
+                  {formatCurrency(metrics.projectedBalance)}
+                </p>
+                <p className="mt-2 text-sm text-[#647067]">
+                  Projected balance from unpaid invoices.
+                </p>
+              </div>
+              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#fff0cc] text-[#8a5a00]">
+                <WalletCards className="h-5 w-5" aria-hidden="true" />
+              </span>
             </div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#fff0cc] text-[#8a5a00]">
-              <WalletCards className="h-5 w-5" aria-hidden="true" />
-            </span>
-          </div>
-          <dl className="mt-5 space-y-3 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <dt className="text-[#647067]">Incoming unpaid</dt>
-              <dd className="font-semibold text-[#1f2933]">{formatCurrency(metrics.totalIncomingUnpaid)}</dd>
+            <dl className="mt-5 space-y-3 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-[#647067]">Incoming unpaid</dt>
+                <dd className="font-semibold text-[#1f2933]">{formatCurrency(metrics.totalIncomingUnpaid)}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-[#647067]">Outgoing unpaid</dt>
+                <dd className="font-semibold text-[#1f2933]">{formatCurrency(metrics.totalOutgoingUnpaid)}</dd>
+              </div>
+            </dl>
+            <div className="mt-6 rounded-md border border-[#edf1ec] bg-[#fbfcfa] p-4 text-sm text-[#58645d]">
+              {clients.length === 0
+                ? "Add your first client to start invoicing."
+                : `Workspace has ${clients.length} client${clients.length === 1 ? "" : "s"}.`}
             </div>
-            <div className="flex items-center justify-between gap-4">
-              <dt className="text-[#647067]">Outgoing unpaid</dt>
-              <dd className="font-semibold text-[#1f2933]">{formatCurrency(metrics.totalOutgoingUnpaid)}</dd>
+          </Panel>
+
+          <Panel>
+            <PanelHeader title={`${metrics.forecastYear} forecast`} description="Expected yearly net position." />
+            <div className="mt-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-3xl font-semibold tracking-normal text-[#1f2933]">
+                  {formatCurrency(metrics.forecastProjectedNet, metrics.forecastCurrency)}
+                </p>
+                <p className="mt-2 text-sm text-[#647067]">Expected income minus expected expenses.</p>
+              </div>
+              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#e7efff] text-[#2455a4]">
+                <CalendarDays className="h-5 w-5" aria-hidden="true" />
+              </span>
             </div>
-          </dl>
-          <div className="mt-6 rounded-md border border-[#edf1ec] bg-[#fbfcfa] p-4 text-sm text-[#58645d]">
-            {clients.length === 0
-              ? "Add your first client to start invoicing."
-              : `Workspace has ${clients.length} client${clients.length === 1 ? "" : "s"}.`}
-          </div>
-        </Panel>
+            <dl className="mt-5 space-y-3 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-[#647067]">Expected income</dt>
+                <dd className="font-semibold text-[#1f2933]">
+                  {formatCurrency(metrics.expectedIncome, metrics.forecastCurrency)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-[#647067]">Expected expenses</dt>
+                <dd className="font-semibold text-[#1f2933]">
+                  {formatCurrency(metrics.expectedExpenses, metrics.forecastCurrency)}
+                </dd>
+              </div>
+            </dl>
+          </Panel>
+        </div>
       </div>
     </div>
   );

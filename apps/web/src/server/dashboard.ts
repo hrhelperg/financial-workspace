@@ -1,6 +1,7 @@
 import "server-only";
 import { and, count, eq, inArray, isNull, sql } from "drizzle-orm";
-import { clients, db, invoices } from "@financial-workspace/db";
+import { clients, db, financialForecasts, invoices } from "@financial-workspace/db";
+import { getCurrentYear } from "./forecast";
 import { requireWorkspaceMember } from "./workspace";
 
 export type DashboardMetrics = {
@@ -12,6 +13,11 @@ export type DashboardMetrics = {
   totalIncomingUnpaid: number;
   totalOutgoingUnpaid: number;
   projectedBalance: number;
+  forecastYear: number;
+  expectedIncome: number;
+  expectedExpenses: number;
+  forecastProjectedNet: number;
+  forecastCurrency: string;
 };
 
 const UNPAID_STATUSES = ["draft", "sent", "overdue"] as const;
@@ -20,6 +26,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const { workspace } = await requireWorkspaceMember();
   const workspaceId = workspace.id;
   const unpaidStatuses = [...UNPAID_STATUSES];
+  const forecastYear = getCurrentYear();
 
   const activeInvoiceFilter = and(eq(invoices.workspaceId, workspaceId), isNull(invoices.deletedAt));
 
@@ -63,8 +70,20 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       and(activeInvoiceFilter, eq(invoices.direction, "outgoing"), inArray(invoices.status, unpaidStatuses))
     );
 
+  const [forecast] = await db
+    .select({
+      expectedIncome: financialForecasts.expectedIncome,
+      expectedExpenses: financialForecasts.expectedExpenses,
+      currency: financialForecasts.currency
+    })
+    .from(financialForecasts)
+    .where(and(eq(financialForecasts.workspaceId, workspaceId), eq(financialForecasts.year, forecastYear)))
+    .limit(1);
+
   const totalIncomingUnpaid = Number(incomingUnpaid?.total ?? 0);
   const totalOutgoingUnpaid = Number(outgoingUnpaid?.total ?? 0);
+  const expectedIncome = Number(forecast?.expectedIncome ?? 0);
+  const expectedExpenses = Number(forecast?.expectedExpenses ?? 0);
 
   return {
     totalClients: Number(clientCount?.total ?? 0),
@@ -74,6 +93,11 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     outstandingBalance: totalIncomingUnpaid,
     totalIncomingUnpaid,
     totalOutgoingUnpaid,
-    projectedBalance: totalIncomingUnpaid - totalOutgoingUnpaid
+    projectedBalance: totalIncomingUnpaid - totalOutgoingUnpaid,
+    forecastYear,
+    expectedIncome,
+    expectedExpenses,
+    forecastProjectedNet: expectedIncome - expectedExpenses,
+    forecastCurrency: forecast?.currency ?? "USD"
   };
 }
