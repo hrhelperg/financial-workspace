@@ -119,7 +119,7 @@ The schema files live under `packages/db/src/schema`:
 - `audit.ts`
 - `billing.ts`
 
-Set `DATABASE_URL` in `.env` before running Drizzle commands. The default `.env.example` assumes a local PostgreSQL database named `financial_workspace`.
+Set `DATABASE_URL` in `.env` before running Drizzle commands. The default `.env.example` assumes a local PostgreSQL database named `financial_workspace`. Make sure Node.js and npm are installed before running the package scripts.
 
 ```bash
 cp .env.example .env
@@ -127,6 +127,14 @@ cp .env.example .env
 
 ```env
 DATABASE_URL="postgres://financial_workspace:financial_workspace@localhost:5432/financial_workspace"
+```
+
+For Supabase, use the project connection string from Supabase Database settings as `DATABASE_URL`. Use the direct connection string for migrations when possible, or the pooled connection string if your environment requires it.
+
+Install dependencies before running validation or migration commands:
+
+```bash
+npm install
 ```
 
 Generate SQL migrations from the schema:
@@ -146,6 +154,8 @@ Run migrations against the configured database:
 ```bash
 npm run db:migrate
 ```
+
+For local PostgreSQL, this applies the generated SQL files to the database in `.env`. For Supabase, set `DATABASE_URL` to the Supabase connection string, then run the same command. As an alternative for Supabase, inspect the generated SQL under `packages/db/drizzle` and apply it in the Supabase SQL editor.
 
 Open Drizzle Studio:
 
