@@ -2,7 +2,7 @@ import "server-only";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { resolve, relative } from "node:path";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { clients, db, invoices, invoiceDirectionValues, type Invoice } from "@financial-workspace/db";
 import { requireWorkspaceMember } from "./workspace";
 
@@ -95,7 +95,7 @@ export async function getFiscalExportPackage(): Promise<FiscalExportPackage> {
     })
     .from(invoices)
     .innerJoin(clients, and(eq(clients.id, invoices.clientId), eq(clients.workspaceId, workspace.id)))
-    .where(eq(invoices.workspaceId, workspace.id))
+    .where(and(eq(invoices.workspaceId, workspace.id), isNull(invoices.deletedAt)))
     .orderBy(asc(invoices.fiscalYear), asc(invoices.direction), asc(invoices.issueDate));
 
   const years = new Set<number>();
@@ -169,7 +169,13 @@ async function getFiscalExportRows(workspaceId: string, fiscalYear: number): Pro
     })
     .from(invoices)
     .innerJoin(clients, and(eq(clients.id, invoices.clientId), eq(clients.workspaceId, workspaceId)))
-    .where(and(eq(invoices.workspaceId, workspaceId), eq(invoices.fiscalYear, fiscalYear)))
+    .where(
+      and(
+        eq(invoices.workspaceId, workspaceId),
+        eq(invoices.fiscalYear, fiscalYear),
+        isNull(invoices.deletedAt)
+      )
+    )
     .orderBy(asc(invoices.direction), asc(invoices.issueDate), asc(invoices.invoiceNumber));
 }
 

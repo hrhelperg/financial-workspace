@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, date, index, numeric, pgTable, text, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { check, date, index, numeric, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { clients } from "./clients";
 import { emptyJson, expenseCategoryTypeEnum, expenseStatusEnum, timestamps } from "./enums";
 import { documents } from "./documents";
@@ -48,11 +48,13 @@ export const expenses = pgTable(
     expenseDate: date("expense_date").notNull(),
     status: expenseStatusEnum("status").default("draft").notNull(),
     metadata: emptyJson<Record<string, unknown>>("metadata"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     ...timestamps()
   },
   (table) => ({
     amountPositiveCheck: check("expenses_amount_positive", sql`${table.amount} > 0`),
     categoryIdx: index("expenses_category_id_idx").on(table.categoryId),
+    deletedAtIdx: index("expenses_deleted_at_idx").on(table.deletedAt),
     clientIdx: index("expenses_client_id_idx").on(table.clientId),
     dateIdx: index("expenses_expense_date_idx").on(table.expenseDate),
     receiptDocumentIdx: index("expenses_receipt_document_id_idx").on(table.receiptDocumentId),

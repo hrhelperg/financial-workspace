@@ -46,10 +46,12 @@ export const invoices = pgTable(
     notes: text("notes"),
     terms: text("terms"),
     metadata: emptyJson<Record<string, unknown>>("metadata"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     ...timestamps()
   },
   (table) => ({
     clientIdx: index("invoices_client_id_idx").on(table.clientId),
+    deletedAtIdx: index("invoices_deleted_at_idx").on(table.deletedAt),
     directionIdx: index("invoices_direction_idx").on(table.direction),
     dueDateIdx: index("invoices_due_date_idx").on(table.dueDate),
     fiscalYearIdx: index("invoices_fiscal_year_idx").on(table.fiscalYear),
