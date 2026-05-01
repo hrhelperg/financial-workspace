@@ -1,8 +1,10 @@
 # Financial Workspace
 
-A TypeScript monorepo for a structured financial operations workspace. It is designed for freelancers and small businesses that need to get paid faster, understand cashflow, organize client records, manage expenses, keep financial documents findable, and automate repetitive finance workflows.
+Financial Workspace is a structured financial operations workspace for freelancers and small businesses.
 
-This is intentionally broader than an invoice app: invoices are one workflow inside a workspace that connects clients, receivables, payments, expenses, documents, and automation events.
+It helps users manage invoices, expenses, clients, cashflow, documents, payment reminders, and automation in one place. The goal is not to build another invoice tool, but a system that helps small operators get paid faster, understand cashflow, and organize financial operations.
+
+This is a TypeScript monorepo with a Next.js web app, Tailwind CSS UI, Drizzle ORM database schema, and an Inngest-ready automation surface.
 
 ## Stack
 
@@ -12,6 +14,7 @@ This is intentionally broader than an invoice app: invoices are one workflow ins
 - PostgreSQL
 - Drizzle ORM
 - Inngest-ready automation foundation
+- Future integrations: Postmark and Cloudflare R2
 
 ## Apps and packages
 
