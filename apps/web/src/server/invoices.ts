@@ -1,10 +1,11 @@
 import "server-only";
-import { randomUUID } from "node:crypto";
-import { and, count, desc, eq } from "drizzle-orm";
+import { createHash, randomUUID } from "node:crypto";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
 import {
   auditLogs,
   clients,
   db,
+  invoiceIdempotencyKeys,
   invoiceItems,
   invoices,
   type Invoice,
@@ -57,10 +58,9 @@ export type InvoiceListItem = {
 export async function listInvoices(filters: { direction?: InvoiceDirectionFilter } = {}): Promise<InvoiceListItem[]> {
   const { workspace } = await requireWorkspaceMember();
   const direction = filters.direction ?? "all";
+  const baseFilter = and(eq(invoices.workspaceId, workspace.id), isNull(invoices.deletedAt));
   const workspaceFilter =
-    direction === "all"
-      ? eq(invoices.workspaceId, workspace.id)
-      : and(eq(invoices.workspaceId, workspace.id), eq(invoices.direction, direction));
+    direction === "all" ? baseFilter : and(baseFilter, eq(invoices.direction, direction));
 
   const rows = await db
     .select({
@@ -224,11 +224,94 @@ async function getNextInvoiceNumber(workspaceId: string): Promise<string> {
 export type CreatedInvoice = {
   invoice: Invoice;
   items: InvoiceItem[];
+  replayed?: boolean;
 };
 
-export async function createInvoice(input: CreateInvoiceInput): Promise<CreatedInvoice> {
+export class IdempotencyConflictError extends Error {
+  constructor() {
+    super("Idempotency key reused with a different request body.");
+    this.name = "IdempotencyConflictError";
+  }
+}
+
+export function isIdempotencyConflictError(error: unknown) {
+  return error instanceof IdempotencyConflictError;
+}
+
+export type CreateInvoiceOptions = {
+  idempotencyKey?: string | null;
+};
+
+function hashCreateInvoiceInput(input: CreateInvoiceInput): string {
+  const canonical = {
+    clientId: input.clientId,
+    invoiceNumber: input.invoiceNumber?.trim() || null,
+    direction: input.direction ?? "incoming",
+    status: input.status,
+    issueDate: input.issueDate,
+    dueDate: input.dueDate,
+    currency: input.currency ?? "USD",
+    notes: input.notes ?? null,
+    terms: input.terms ?? null,
+    items: input.items.map((item) => ({
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      taxRate: item.taxRate
+    }))
+  };
+  return createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
+}
+
+async function loadCreatedInvoice(workspaceId: string, invoiceId: string): Promise<CreatedInvoice | null> {
+  const [invoice] = await db
+    .select()
+    .from(invoices)
+    .where(and(eq(invoices.id, invoiceId), eq(invoices.workspaceId, workspaceId)))
+    .limit(1);
+
+  if (!invoice) {
+    return null;
+  }
+
+  const items = await db
+    .select()
+    .from(invoiceItems)
+    .where(and(eq(invoiceItems.invoiceId, invoiceId), eq(invoiceItems.workspaceId, workspaceId)));
+
+  return { invoice, items };
+}
+
+export async function createInvoice(
+  input: CreateInvoiceInput,
+  options: CreateInvoiceOptions = {}
+): Promise<CreatedInvoice> {
   const { user, workspace } = await requireWorkspaceRole(["member"]);
   const workspaceId = workspace.id;
+  const idempotencyKey = options.idempotencyKey?.trim() || null;
+  const requestHash = idempotencyKey ? hashCreateInvoiceInput(input) : null;
+
+  if (idempotencyKey) {
+    const [existing] = await db
+      .select()
+      .from(invoiceIdempotencyKeys)
+      .where(
+        and(eq(invoiceIdempotencyKeys.workspaceId, workspaceId), eq(invoiceIdempotencyKeys.key, idempotencyKey))
+      )
+      .limit(1);
+
+    if (existing) {
+      if (existing.requestHash !== requestHash) {
+        throw new IdempotencyConflictError();
+      }
+
+      const replay = await loadCreatedInvoice(workspaceId, existing.invoiceId);
+      if (replay) {
+        return { ...replay, replayed: true };
+      }
+    }
+  }
+
   const invoiceId = randomUUID();
   const direction = input.direction ?? "incoming";
   const fiscalYear = getFiscalYearFromIssueDate(input.issueDate);
@@ -242,7 +325,9 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<CreatedI
   const [client] = await db
     .select({ id: clients.id })
     .from(clients)
-    .where(and(eq(clients.id, input.clientId), eq(clients.workspaceId, workspaceId)))
+    .where(
+      and(eq(clients.id, input.clientId), eq(clients.workspaceId, workspaceId), isNull(clients.deletedAt))
+    )
     .limit(1);
 
   if (!client) {
@@ -275,6 +360,8 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<CreatedI
       })
       .returning();
 
+    let items: InvoiceItem[] = [];
+
     if (lines.length === 0) {
       await tx.insert(auditLogs).values({
         workspaceId,
@@ -288,39 +375,53 @@ export async function createInvoice(input: CreateInvoiceInput): Promise<CreatedI
           fiscal_year: fiscalYear
         }
       });
+    } else {
+      items = await tx
+        .insert(invoiceItems)
+        .values(
+          lines.map((line) => ({
+            workspaceId,
+            invoiceId: invoice.id,
+            description: line.description,
+            quantity: line.quantity,
+            unitPrice: line.unitPrice,
+            taxRate: line.taxRate,
+            taxAmount: line.taxAmount,
+            lineTotal: line.lineTotal,
+            sortOrder: line.sortOrder
+          }))
+        )
+        .returning();
 
-      return { invoice, items: [] };
+      await tx.insert(auditLogs).values({
+        workspaceId,
+        actorUserId: user.id,
+        action: "create",
+        entityType: "invoice",
+        entityId: invoice.id,
+        metadata: {
+          changed_fields: ["invoice", "items", "amount"],
+          direction,
+          fiscal_year: fiscalYear
+        }
+      });
     }
 
-    const items = await tx
-      .insert(invoiceItems)
-      .values(
-        lines.map((line) => ({
+    if (idempotencyKey && requestHash) {
+      try {
+        await tx.insert(invoiceIdempotencyKeys).values({
           workspaceId,
+          key: idempotencyKey,
           invoiceId: invoice.id,
-          description: line.description,
-          quantity: line.quantity,
-          unitPrice: line.unitPrice,
-          taxRate: line.taxRate,
-          taxAmount: line.taxAmount,
-          lineTotal: line.lineTotal,
-          sortOrder: line.sortOrder
-        }))
-      )
-      .returning();
-
-    await tx.insert(auditLogs).values({
-      workspaceId,
-      actorUserId: user.id,
-      action: "create",
-      entityType: "invoice",
-      entityId: invoice.id,
-      metadata: {
-        changed_fields: ["invoice", "items", "amount"],
-        direction,
-        fiscal_year: fiscalYear
+          requestHash,
+          actorUserId: user.id
+        });
+      } catch (error) {
+        // A concurrent request with the same key won the race. Surface as conflict
+        // so the caller can re-issue and hit the replay branch.
+        throw new IdempotencyConflictError();
       }
-    });
+    }
 
     return { invoice, items };
   });
@@ -344,7 +445,9 @@ export async function updateInvoice(invoiceId: string, input: UpdateInvoicePaylo
   const [existing] = await db
     .select()
     .from(invoices)
-    .where(and(eq(invoices.id, invoiceId), eq(invoices.workspaceId, workspaceId)))
+    .where(
+      and(eq(invoices.id, invoiceId), eq(invoices.workspaceId, workspaceId), isNull(invoices.deletedAt))
+    )
     .limit(1);
 
   if (!existing) {

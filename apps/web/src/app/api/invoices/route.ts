@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createInvoice, listInvoices } from "@/server/invoices";
+import { createInvoice, isIdempotencyConflictError, listInvoices } from "@/server/invoices";
 import { isAuthenticationError, isAuthorizationError } from "@/server/workspace";
 import { parseCreateInvoicePayload } from "@/server/validation";
 
@@ -31,9 +31,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ errors: parsed.errors }, { status: 400 });
   }
 
+  const idempotencyKey = request.headers.get("idempotency-key");
+
   try {
-    const created = await createInvoice(parsed.data);
-    return NextResponse.json({ data: created }, { status: 201 });
+    const created = await createInvoice(parsed.data, { idempotencyKey });
+    const status = created.replayed ? 200 : 201;
+    return NextResponse.json({ data: created }, { status });
   } catch (error) {
     return handleApiError(error);
   }
@@ -46,6 +49,13 @@ function handleApiError(error: unknown) {
 
   if (isAuthorizationError(error)) {
     return NextResponse.json({ errors: [{ field: "_", message: "Insufficient workspace role." }] }, { status: 403 });
+  }
+
+  if (isIdempotencyConflictError(error)) {
+    return NextResponse.json(
+      { errors: [{ field: "_", message: "Idempotency-Key already used with a different request body." }] },
+      { status: 409 }
+    );
   }
 
   const message = error instanceof Error ? error.message : "Failed to create invoice.";
