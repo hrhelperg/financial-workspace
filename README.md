@@ -76,18 +76,29 @@ npm run db:studio
 
 ## Database
 
-The Drizzle schema currently defines:
+The Drizzle schema lives in `packages/db/src/schema` and is split by domain. It currently defines:
 
 - `users`
 - `workspaces`
+- `workspace_members`
 - `clients`
+- `client_payment_profiles`
 - `invoices`
 - `invoice_items`
+- `invoice_events`
 - `payments`
+- `expense_categories`
 - `expenses`
+- `cashflow_snapshots`
+- `financial_insights`
 - `documents`
+- `notes`
+- `tasks`
 - `automation_rules`
 - `automation_events`
+- `events`
+- `audit_logs`
+- `subscriptions`
 
 Set `DATABASE_URL` before running Drizzle commands. The default `.env.example` assumes a local PostgreSQL database named `financial_workspace`.
 
