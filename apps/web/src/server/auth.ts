@@ -3,6 +3,7 @@ import { cache } from "react";
 import { and, asc, eq, sql } from "drizzle-orm";
 import {
   db,
+  setRequestIdentity,
   users,
   workspaceMembers,
   workspaces,
@@ -150,6 +151,16 @@ async function ensureDefaultWorkspaceForUser(user: User) {
 }
 
 export const getCurrentUser = cache(async (): Promise<User | null> => {
+  const resolved = await resolveCurrentUser();
+
+  if (resolved) {
+    setRequestIdentity(resolved.id);
+  }
+
+  return resolved;
+});
+
+async function resolveCurrentUser(): Promise<User | null> {
   if (!hasSupabaseAuthConfig()) {
     return isLocalAuthBypassEnabled() ? ensureLocalDevelopmentUser() : null;
   }
@@ -169,7 +180,7 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
     email: user.email,
     name: user.user_metadata.name ?? user.email
   });
-});
+}
 
 export const getCurrentWorkspace = cache(async (): Promise<WorkspaceContext | null> => {
   const user = await getCurrentUser();
