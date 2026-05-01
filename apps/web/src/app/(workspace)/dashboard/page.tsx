@@ -1,106 +1,115 @@
-import { BriefcaseBusiness, CheckCircle2, Clock3, DollarSign, ReceiptText, Timer } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import {
-  cashOutlook,
-  dashboardMetrics,
-  operatingFocus,
-  recentActivity,
-  type DashboardMetricIcon
-} from "@financial-workspace/core";
+import { BriefcaseBusiness, DollarSign, ReceiptText, Timer, WalletCards } from "lucide-react";
 import { Panel, PanelHeader } from "@financial-workspace/ui";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
+import { listClients } from "@/server/clients";
+import { listInvoices } from "@/server/invoices";
+import { getDashboardMetrics } from "@/server/dashboard";
+import { formatCurrency, formatDate } from "@/server/format";
 
-const metricIcons: Record<DashboardMetricIcon, LucideIcon> = {
-  clients: BriefcaseBusiness,
-  dollar: DollarSign,
-  invoices: ReceiptText,
-  overdue: Timer
-};
+export const dynamic = "force-dynamic";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const [metrics, recentInvoices, clients] = await Promise.all([
+    getDashboardMetrics(),
+    listInvoices(),
+    listClients()
+  ]);
+
+  const recent = recentInvoices.slice(0, 5);
+
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Operations"
         title="Financial control center"
-        description="A workspace view of receivables, payments, expenses, cashflow, documents, and automation readiness."
+        description="Receivables, clients, and invoice activity at a glance."
         actionLabel="New invoice"
         actionIcon={ReceiptText}
+        actionHref="/invoices/new"
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {dashboardMetrics.map((metric) => (
-          <MetricCard
-            key={metric.title}
-            title={metric.title}
-            value={metric.value}
-            note={metric.note}
-            icon={metricIcons[metric.icon]}
-            tone={metric.tone}
-          />
-        ))}
+        <MetricCard
+          title="Clients"
+          value={String(metrics.totalClients)}
+          note="Active workspace relationships"
+          icon={BriefcaseBusiness}
+          tone="green"
+        />
+        <MetricCard
+          title="Total invoices"
+          value={String(metrics.totalInvoices)}
+          note="Across all statuses"
+          icon={ReceiptText}
+          tone="blue"
+        />
+        <MetricCard
+          title="Unpaid invoices"
+          value={String(metrics.unpaidInvoices)}
+          note="Drafts, sent, and overdue"
+          icon={Timer}
+          tone="amber"
+        />
+        <MetricCard
+          title="Total revenue"
+          value={formatCurrency(metrics.totalRevenue)}
+          note="Sum of paid amounts"
+          icon={DollarSign}
+          tone="green"
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
         <Panel>
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-semibold tracking-normal text-[#1f2933]">Recent activity</h2>
-              <p className="mt-1 text-sm text-[#647067]">Latest records across the workspace.</p>
-            </div>
-            <Clock3 className="h-5 w-5 text-[#0f766e]" aria-hidden="true" />
-          </div>
+          <PanelHeader title="Recent invoices" description="Latest activity in this workspace." />
           <div className="mt-5 divide-y divide-[#edf1ec]">
-            {recentActivity.map((item) => (
-              <div key={item.label} className="flex items-center justify-between gap-4 py-4">
-                <div>
-                  <p className="text-sm font-semibold text-[#1f2933]">{item.label}</p>
-                  <p className="mt-1 text-sm text-[#647067]">{item.meta}</p>
+            {recent.length === 0 ? (
+              <p className="py-6 text-center text-sm text-[#58645d]">
+                No invoices yet. Create one from the invoices page.
+              </p>
+            ) : (
+              recent.map((invoice) => (
+                <div key={invoice.id} className="flex items-center justify-between gap-4 py-4">
+                  <div>
+                    <p className="text-sm font-semibold text-[#1f2933]">
+                      {invoice.invoiceNumber} · {invoice.clientName}
+                    </p>
+                    <p className="mt-1 text-sm text-[#647067]">
+                      Due {formatDate(invoice.dueDate)} · {invoice.status}
+                    </p>
+                  </div>
+                  <span className="text-sm font-semibold text-[#1f2933]">
+                    {formatCurrency(invoice.totalAmount, invoice.currency)}
+                  </span>
                 </div>
-                <span className="text-sm font-semibold text-[#1f2933]">{item.amount}</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Panel>
 
         <Panel>
-          <h2 className="text-lg font-semibold tracking-normal text-[#1f2933]">Cash outlook</h2>
-          <div className="mt-5 space-y-4">
-            {cashOutlook.map((item) => (
-              <div key={item.label}>
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="font-medium text-[#58645d]">{item.label}</span>
-                  <span className="font-semibold text-[#1f2933]">{item.value}</span>
-                </div>
-                <div className="h-2 rounded-full bg-[#edf1ec]">
-                  <div className={`${item.colorClassName} h-2 rounded-full`} style={{ width: item.value }} />
-                </div>
-              </div>
-            ))}
+          <PanelHeader title="Outstanding" description="Balance still to collect." />
+          <div className="mt-5 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-3xl font-semibold tracking-normal text-[#1f2933]">
+                {formatCurrency(metrics.outstandingBalance)}
+              </p>
+              <p className="mt-2 text-sm text-[#647067]">
+                Across {metrics.unpaidInvoices} unpaid invoice{metrics.unpaidInvoices === 1 ? "" : "s"}.
+              </p>
+            </div>
+            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#fff0cc] text-[#8a5a00]">
+              <WalletCards className="h-5 w-5" aria-hidden="true" />
+            </span>
+          </div>
+          <div className="mt-6 rounded-md border border-[#edf1ec] bg-[#fbfcfa] p-4 text-sm text-[#58645d]">
+            {clients.length === 0
+              ? "Add your first client to start invoicing."
+              : `Workspace has ${clients.length} client${clients.length === 1 ? "" : "s"}.`}
           </div>
         </Panel>
       </div>
-
-      <Panel>
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <PanelHeader
-            title="Workspace priorities"
-            description="Built around financial operations, not a single billing workflow."
-          />
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {operatingFocus.map((item) => (
-              <div
-                key={item}
-                className="flex min-h-16 items-start gap-3 rounded-md border border-[#edf1ec] bg-[#fbfcfa] p-3"
-              >
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#0f766e]" aria-hidden="true" />
-                <span className="text-sm font-medium leading-5 text-[#1f2933]">{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Panel>
     </div>
   );
 }
