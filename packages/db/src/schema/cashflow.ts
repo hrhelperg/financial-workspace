@@ -1,4 +1,4 @@
-import { date, index, numeric, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { date, index, integer, numeric, pgTable, text, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import {
   cashflowSnapshotTypeEnum,
   emptyJson,
@@ -69,7 +69,29 @@ export const financialInsights = pgTable(
   })
 );
 
+export const financialForecasts = pgTable(
+  "financial_forecasts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    year: integer("year").notNull(),
+    expectedIncome: numeric("expected_income", { precision: 12, scale: 2 }).default("0").notNull(),
+    expectedExpenses: numeric("expected_expenses", { precision: 12, scale: 2 }).default("0").notNull(),
+    currency: text("currency").default("USD").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => ({
+    workspaceIdx: index("financial_forecasts_workspace_id_idx").on(table.workspaceId),
+    workspaceYearIdx: uniqueIndex("financial_forecasts_workspace_year_idx").on(table.workspaceId, table.year)
+  })
+);
+
 export type CashflowSnapshot = typeof cashflowSnapshots.$inferSelect;
 export type NewCashflowSnapshot = typeof cashflowSnapshots.$inferInsert;
 export type FinancialInsight = typeof financialInsights.$inferSelect;
 export type NewFinancialInsight = typeof financialInsights.$inferInsert;
+export type FinancialForecast = typeof financialForecasts.$inferSelect;
+export type NewFinancialForecast = typeof financialForecasts.$inferInsert;

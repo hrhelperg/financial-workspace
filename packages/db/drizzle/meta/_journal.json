@@ -43,6 +43,13 @@
       "when": 1777666033404,
       "tag": "0005_enable_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777667750057,
+      "tag": "0006_black_northstar",
+      "breakpoints": true
     }
   ]
 }
