@@ -12,5 +12,6 @@ export * from "./invoices";
 export * from "./notes";
 export * from "./payments";
 export * from "./tasks";
+export * from "./templates";
 export * from "./users";
 export * from "./workspaces";
