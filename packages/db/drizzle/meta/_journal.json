@@ -1,55 +1,62 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1777643742189,
-      "tag": "0000_grey_virginia_dare",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1777655248093,
-      "tag": "0001_supreme_gargoyle",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1777662619539,
-      "tag": "0002_naive_amazoness",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1777663750410,
-      "tag": "0003_fast_sauron",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1777666019147,
-      "tag": "0004_acoustic_baron_zemo",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1777666033404,
-      "tag": "0005_enable_rls",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1777667750057,
-      "tag": "0006_black_northstar",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1777643742189,
+			"tag": "0000_grey_virginia_dare",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1777655248093,
+			"tag": "0001_supreme_gargoyle",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1777662619539,
+			"tag": "0002_naive_amazoness",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1777663750410,
+			"tag": "0003_fast_sauron",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1777666019147,
+			"tag": "0004_acoustic_baron_zemo",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1777666033404,
+			"tag": "0005_enable_rls",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1777667750057,
+			"tag": "0006_black_northstar",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "7",
+			"when": 1777671355735,
+			"tag": "0007_mature_eddie_brock",
+			"breakpoints": true
+		}
+	]
 }
