@@ -1,4 +1,4 @@
-import type { Client as DbClient, Invoice as DbInvoice, InvoiceItem as DbInvoiceItem } from "@financial-workspace/db";
+import type { Client as DbClient, Invoice as DbInvoice, InvoiceItem as DbInvoiceItem } from "@financial-workspace/db/schema";
 
 type DrizzleInvoiceStatus = DbInvoice["status"];
 

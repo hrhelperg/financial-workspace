@@ -8,12 +8,22 @@ const DEFAULT_OWNER_NAME = "Workspace owner";
 const DEFAULT_WORKSPACE_NAME = "Default workspace";
 
 let cachedWorkspaceId: string | undefined;
+let pendingWorkspaceId: Promise<string> | undefined;
 
 export async function getDefaultWorkspaceId(): Promise<string> {
   if (cachedWorkspaceId) {
     return cachedWorkspaceId;
   }
 
+  pendingWorkspaceId ??= resolveDefaultWorkspaceId().catch((error: unknown) => {
+    pendingWorkspaceId = undefined;
+    throw error;
+  });
+
+  return pendingWorkspaceId;
+}
+
+async function resolveDefaultWorkspaceId(): Promise<string> {
   const existing = await db
     .select({ id: workspaces.id })
     .from(workspaces)
@@ -32,6 +42,12 @@ export async function getDefaultWorkspaceId(): Promise<string> {
       name: DEFAULT_WORKSPACE_NAME,
       slug: DEFAULT_WORKSPACE_SLUG,
       ownerId: owner.id
+    })
+    .onConflictDoUpdate({
+      target: workspaces.slug,
+      set: {
+        name: DEFAULT_WORKSPACE_NAME
+      }
     })
     .returning({ id: workspaces.id });
 
@@ -55,6 +71,12 @@ async function ensureDefaultOwner() {
     .values({
       email: DEFAULT_OWNER_EMAIL,
       name: DEFAULT_OWNER_NAME
+    })
+    .onConflictDoUpdate({
+      target: users.email,
+      set: {
+        name: DEFAULT_OWNER_NAME
+      }
     })
     .returning({ id: users.id });
 

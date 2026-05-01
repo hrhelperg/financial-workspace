@@ -14,6 +14,7 @@
     "@financial-workspace/core": "*",
     "@financial-workspace/db": "*",
     "@financial-workspace/ui": "*",
+    "dotenv": "latest",
     "inngest": "latest",
     "lucide-react": "latest",
     "next": "latest",

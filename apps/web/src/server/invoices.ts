@@ -77,7 +77,7 @@ export type CreateInvoiceItemInput = {
 
 export type CreateInvoiceInput = {
   clientId: string;
-  invoiceNumber?: string;
+  invoiceNumber?: string | null;
   status: InvoiceStatus;
   issueDate: string;
   dueDate: string;
