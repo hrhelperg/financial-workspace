@@ -13,7 +13,7 @@ import {
   varchar
 } from "drizzle-orm/pg-core";
 import { clients } from "./clients";
-import { emptyJson, invoiceEventTypeEnum, invoiceStatusEnum, timestamps } from "./enums";
+import { emptyJson, invoiceDirectionEnum, invoiceEventTypeEnum, invoiceStatusEnum, timestamps } from "./enums";
 import { users } from "./users";
 import { workspaces } from "./workspaces";
 
@@ -28,9 +28,12 @@ export const invoices = pgTable(
       .notNull()
       .references(() => clients.id, { onDelete: "restrict" }),
     invoiceNumber: varchar("invoice_number", { length: 80 }).notNull(),
+    direction: invoiceDirectionEnum("direction").default("incoming").notNull(),
     status: invoiceStatusEnum("status").default("draft").notNull(),
     issueDate: date("issue_date").notNull(),
     dueDate: date("due_date").notNull(),
+    fiscalYear: integer("fiscal_year").notNull(),
+    storagePath: text("storage_path"),
     sentAt: timestamp("sent_at", { withTimezone: true }),
     paidAt: timestamp("paid_at", { withTimezone: true }),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
@@ -47,11 +50,19 @@ export const invoices = pgTable(
   },
   (table) => ({
     clientIdx: index("invoices_client_id_idx").on(table.clientId),
+    directionIdx: index("invoices_direction_idx").on(table.direction),
     dueDateIdx: index("invoices_due_date_idx").on(table.dueDate),
+    fiscalYearIdx: index("invoices_fiscal_year_idx").on(table.fiscalYear),
     statusIdx: index("invoices_status_idx").on(table.status),
     totalAmountCheck: check("invoices_total_amount_non_negative", sql`${table.totalAmount} >= 0`),
     workspaceClientIdx: index("invoices_workspace_client_id_idx").on(table.workspaceId, table.clientId),
+    workspaceDirectionIdx: index("invoices_workspace_direction_idx").on(table.workspaceId, table.direction),
     workspaceDueDateIdx: index("invoices_workspace_due_date_idx").on(table.workspaceId, table.dueDate),
+    workspaceFiscalDirectionIdx: index("invoices_workspace_fiscal_direction_idx").on(
+      table.workspaceId,
+      table.fiscalYear,
+      table.direction
+    ),
     workspaceIdx: index("invoices_workspace_id_idx").on(table.workspaceId),
     workspaceInvoiceNumberIdx: uniqueIndex("invoices_workspace_invoice_number_idx").on(
       table.workspaceId,

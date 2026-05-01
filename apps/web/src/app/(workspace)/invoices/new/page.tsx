@@ -23,7 +23,7 @@ export default async function NewInvoicePage() {
       <PageHeader
         eyebrow="Billing"
         title="New invoice"
-        description="Build an itemized invoice and choose a status."
+        description="Build an itemized sales or purchase invoice and choose a status."
         actionLabel="Invoice workspace"
         actionIcon={ReceiptText}
       />
@@ -33,7 +33,7 @@ export default async function NewInvoicePage() {
           description={
             clientOptions.length === 0
               ? "Add a client first to start invoicing."
-              : "Pick a client, add line items, and set the status."
+              : "Pick a client or supplier, add line items, and set the direction."
           }
         />
         <div className="mt-5">

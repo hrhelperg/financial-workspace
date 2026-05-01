@@ -55,7 +55,11 @@ npm run db:studio
 - `/expenses`
 - `/cashflow`
 - `/documents`
+- `/documents/export`
 - `/settings`
+- `/settings/team`
+- `/settings/team/invite`
+- `/login`
 
 ## Product areas
 
@@ -64,7 +68,7 @@ npm run db:studio
 - Invoices and payments for receivables and getting paid faster.
 - Expenses for spend tracking and receipt organization.
 - Cashflow for short-term inflow, outflow, and risk visibility.
-- Documents for contracts, receipts, invoices, and financial records.
+- Documents for contracts, receipts, invoices, fiscal folders, and financial records.
 - Automation rules and events for future workflow orchestration.
 
 ## Current MVP
@@ -73,6 +77,9 @@ npm run db:studio
 - Invoices list with a create invoice form.
 - Itemized invoice lines with quantity, unit price, tax rate, and calculated totals.
 - Invoice statuses: `draft`, `sent`, `paid`, `overdue`, `cancelled`.
+- Invoice directions: `incoming` for sales invoices and `outgoing` for purchase invoices.
+- Fiscal export metadata grouped by year and invoice direction.
+- Fiscal ZIP export at `/api/export?year=2026` with `incoming/`, `outgoing/`, and `summary.csv`.
 - Dashboard summary cards for clients, open invoices, receivables, and overdue balance.
 
 ## Database
@@ -82,6 +89,7 @@ The Drizzle schema lives in `packages/db/src/schema` and is split by domain. It 
 - `users`
 - `workspaces`
 - `workspace_members`
+- `workspace_invitations`
 - `clients`
 - `client_payment_profiles`
 - `invoices`
@@ -119,7 +127,7 @@ The schema files live under `packages/db/src/schema`:
 - `audit.ts`
 - `billing.ts`
 
-Set `DATABASE_URL` in `.env` before running Drizzle commands. The default `.env.example` assumes a local PostgreSQL database named `financial_workspace`. Make sure Node.js and npm are installed before running the package scripts.
+Set `DATABASE_URL` in `.env` before running Drizzle commands. The `.env.example` file intentionally uses empty placeholders so real local or Supabase credentials are never committed. Make sure Node.js and npm are installed before running the package scripts.
 
 ```bash
 cp .env.example .env
@@ -127,6 +135,10 @@ cp .env.example .env
 
 ```env
 DATABASE_URL="postgres://financial_workspace:financial_workspace@localhost:5432/financial_workspace"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_SUPABASE_URL=""
+NEXT_PUBLIC_SUPABASE_ANON_KEY=""
+FISCAL_DOCUMENT_STORAGE_ROOT=""
 ```
 
 For Supabase, use the project connection string from Supabase Database settings as `DATABASE_URL`. Use the direct connection string for migrations when possible, or the pooled connection string if your environment requires it.
@@ -164,6 +176,45 @@ npm run db:studio
 ```
 
 `db:push` is available only for local development and prototyping. Use generated migrations for shared, staging, and production databases.
+
+## Authentication and security
+
+Supabase Auth is used for authentication when `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are configured. The app maps Supabase Auth users to local `users` records and grants access through `workspace_members`.
+
+Required local environment values:
+
+```env
+DATABASE_URL=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+FISCAL_DOCUMENT_STORAGE_ROOT=
+```
+
+Never expose Supabase service-role keys in the web app. Service-role keys must not be committed, must not use the `NEXT_PUBLIC_` prefix, and should only be used from trusted backend jobs if they are added later.
+
+Workspace data is tenant-isolated by `workspace_id`. Server helpers require active membership before loading workspace data, and write operations require an appropriate workspace role.
+
+Team invitations are stored in `workspace_invitations` with a token, role, status, and expiration. Email sending is currently abstracted so a provider can be added later without changing invitation persistence.
+
+Tenant isolation rules:
+
+- The current workspace is derived on the server from the authenticated user through `getCurrentWorkspace()`.
+- Client requests must never provide a trusted `workspace_id`; reads and writes use the workspace from `requireWorkspaceMember()` or `requireWorkspaceRole()`.
+- Workspace business data queries must include a `workspace_id` filter before returning clients, invoices, expenses, documents, dashboard metrics, or related records.
+- Invite tokens are only viewable and acceptable by the signed-in user whose email matches the pending, unexpired invitation.
+- Supabase service-role keys must stay server-only and must not be added to `NEXT_PUBLIC_` variables.
+
+Tenant security test cases:
+
+- User A in workspace A cannot load a client, invoice, expense, or document from workspace B by guessing an ID.
+- User A cannot create an invoice in workspace A with a client ID from workspace B.
+- A viewer cannot create clients, invoices, or invitations.
+- A member can create clients and invoices but cannot invite teammates.
+- An admin can invite teammates as `admin`, `member`, or `viewer`, but cannot grant ownership by invitation.
+- An invitation token cannot be viewed or accepted by a signed-in user with a different email address.
+
+Recommended Supabase hardening: add Row Level Security policies that mirror the app-level membership checks before exposing any direct database access outside trusted server code.
 
 ## Automation
 

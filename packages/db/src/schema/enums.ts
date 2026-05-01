@@ -3,12 +3,20 @@ import { jsonb, pgEnum, timestamp } from "drizzle-orm/pg-core";
 
 export const workspaceMemberRoleEnum = pgEnum("workspace_member_role", ["owner", "admin", "member", "viewer"]);
 export const workspaceMemberStatusEnum = pgEnum("workspace_member_status", ["invited", "active", "suspended"]);
+export const workspaceInvitationStatusEnum = pgEnum("workspace_invitation_status", [
+  "pending",
+  "accepted",
+  "revoked",
+  "expired"
+]);
 
 export const clientStatusEnum = pgEnum("client_status", ["lead", "active", "paused", "archived"]);
 export const paymentRiskLevelEnum = pgEnum("payment_risk_level", ["low", "medium", "high", "unknown"]);
 
 export const invoiceStatusValues = ["draft", "sent", "paid", "overdue", "cancelled"] as const;
 export const invoiceStatusEnum = pgEnum("invoice_status", invoiceStatusValues);
+export const invoiceDirectionValues = ["incoming", "outgoing"] as const;
+export const invoiceDirectionEnum = pgEnum("invoice_direction", invoiceDirectionValues);
 export const invoiceEventTypeEnum = pgEnum("invoice_event_type", [
   "created",
   "updated",
@@ -114,7 +122,15 @@ export const eventTypeEnum = pgEnum("event_type", [
 ]);
 export const eventStatusEnum = pgEnum("event_status", ["scheduled", "completed", "cancelled", "failed"]);
 
-export const auditActionEnum = pgEnum("audit_action", ["create", "update", "delete", "login", "export", "automation"]);
+export const auditActionEnum = pgEnum("audit_action", [
+  "create",
+  "update",
+  "delete",
+  "login",
+  "export",
+  "automation",
+  "status_change"
+]);
 
 export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "trialing",

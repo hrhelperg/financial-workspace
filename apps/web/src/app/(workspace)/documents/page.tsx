@@ -1,6 +1,7 @@
-import { Upload } from "lucide-react";
+import { FileArchive } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { PlaceholderTable } from "@/components/placeholder-table";
+import { requireWorkspaceMember } from "@/server/workspace";
 
 const columns = [
   { key: "name", label: "Document" },
@@ -17,15 +18,18 @@ const rows = [
   { name: "pine-tax-form.pdf", type: "Tax", linked: "Pine Labs", status: "Review", updated: "Apr 26" }
 ];
 
-export default function DocumentsPage() {
+export default async function DocumentsPage() {
+  await requireWorkspaceMember();
+
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Files"
         title="Documents"
         description="28 files, 4 pending review, 3 linked today."
-        actionLabel="Upload"
-        actionIcon={Upload}
+        actionLabel="Fiscal export"
+        actionIcon={FileArchive}
+        actionHref="/documents/export"
       />
       <PlaceholderTable columns={columns} rows={rows} />
     </div>

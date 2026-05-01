@@ -1,6 +1,13 @@
 import { index, integer, pgTable, text, uuid, varchar } from "drizzle-orm/pg-core";
 import { clients } from "./clients";
-import { documentStatusEnum, documentTypeEnum, emptyJson, relatedEntityTypeEnum, timestamps } from "./enums";
+import {
+  documentStatusEnum,
+  documentTypeEnum,
+  emptyJson,
+  invoiceDirectionEnum,
+  relatedEntityTypeEnum,
+  timestamps
+} from "./enums";
 import { invoices } from "./invoices";
 import { users } from "./users";
 import { workspaces } from "./workspaces";
@@ -19,9 +26,12 @@ export const documents = pgTable(
     relatedEntityId: uuid("related_entity_id"),
     documentType: documentTypeEnum("document_type").default("other").notNull(),
     status: documentStatusEnum("status").default("uploaded").notNull(),
+    direction: invoiceDirectionEnum("direction"),
+    fiscalYear: integer("fiscal_year"),
     fileName: varchar("file_name", { length: 255 }).notNull(),
     fileType: varchar("file_type", { length: 120 }).notNull(),
     storageKey: text("storage_key").notNull(),
+    storagePath: text("storage_path"),
     sizeBytes: integer("size_bytes"),
     checksum: varchar("checksum", { length: 255 }),
     parsedMetadata: emptyJson<Record<string, unknown>>("parsed_metadata"),
@@ -34,8 +44,14 @@ export const documents = pgTable(
     relatedEntityIdx: index("documents_related_entity_idx").on(table.relatedEntityType, table.relatedEntityId),
     statusIdx: index("documents_status_idx").on(table.status),
     storageKeyIdx: index("documents_storage_key_idx").on(table.storageKey),
+    storagePathIdx: index("documents_storage_path_idx").on(table.storagePath),
     typeIdx: index("documents_document_type_idx").on(table.documentType),
     uploadedByIdx: index("documents_uploaded_by_id_idx").on(table.uploadedById),
+    workspaceFiscalDirectionIdx: index("documents_workspace_fiscal_direction_idx").on(
+      table.workspaceId,
+      table.fiscalYear,
+      table.direction
+    ),
     workspaceIdx: index("documents_workspace_id_idx").on(table.workspaceId)
   })
 );

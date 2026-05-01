@@ -1,7 +1,7 @@
 import "server-only";
 import { and, desc, eq } from "drizzle-orm";
 import { clients, db, type Client } from "@financial-workspace/db";
-import { getDefaultWorkspaceId } from "./workspace";
+import { requireWorkspaceMember, requireWorkspaceRole } from "./workspace";
 
 export type ClientListItem = Pick<
   Client,
@@ -9,7 +9,7 @@ export type ClientListItem = Pick<
 >;
 
 export async function listClients(): Promise<ClientListItem[]> {
-  const workspaceId = await getDefaultWorkspaceId();
+  const { workspace } = await requireWorkspaceMember();
 
   return db
     .select({
@@ -22,7 +22,7 @@ export async function listClients(): Promise<ClientListItem[]> {
       createdAt: clients.createdAt
     })
     .from(clients)
-    .where(eq(clients.workspaceId, workspaceId))
+    .where(eq(clients.workspaceId, workspace.id))
     .orderBy(desc(clients.createdAt));
 }
 
@@ -35,12 +35,12 @@ export type CreateClientInput = {
 };
 
 export async function createClient(input: CreateClientInput): Promise<Client> {
-  const workspaceId = await getDefaultWorkspaceId();
+  const { workspace } = await requireWorkspaceRole(["member"]);
 
   const [created] = await db
     .insert(clients)
     .values({
-      workspaceId,
+      workspaceId: workspace.id,
       name: input.name,
       companyName: input.companyName ?? null,
       email: input.email ?? null,
@@ -53,11 +53,11 @@ export async function createClient(input: CreateClientInput): Promise<Client> {
 }
 
 export async function getClientById(id: string): Promise<Client | undefined> {
-  const workspaceId = await getDefaultWorkspaceId();
+  const { workspace } = await requireWorkspaceMember();
   const [row] = await db
     .select()
     .from(clients)
-    .where(and(eq(clients.workspaceId, workspaceId), eq(clients.id, id)))
+    .where(and(eq(clients.workspaceId, workspace.id), eq(clients.id, id)))
     .limit(1);
 
   return row;

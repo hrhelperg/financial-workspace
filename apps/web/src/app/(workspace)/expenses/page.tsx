@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { PlaceholderTable } from "@/components/placeholder-table";
+import { requireWorkspaceMember } from "@/server/workspace";
 
 const columns = [
   { key: "vendor", label: "Vendor" },
@@ -17,7 +18,9 @@ const rows = [
   { vendor: "Linear", category: "Software", date: "Apr 25", amount: "$80", status: "Approved" }
 ];
 
-export default function ExpensesPage() {
+export default async function ExpensesPage() {
+  await requireWorkspaceMember();
+
   return (
     <div className="space-y-6">
       <PageHeader

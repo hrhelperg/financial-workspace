@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
 import { Plus, ReceiptText, Trash2 } from "lucide-react";
-import { invoiceStatusValues } from "@financial-workspace/db/schema";
+import { invoiceDirectionValues, invoiceStatusValues } from "@financial-workspace/db/schema";
 import {
   inputClassName,
   labelClassName,
@@ -12,6 +12,7 @@ import {
 } from "@/components/form-styles";
 
 type Status = (typeof invoiceStatusValues)[number];
+type Direction = (typeof invoiceDirectionValues)[number];
 
 const statusLabels: Record<Status, string> = {
   cancelled: "Cancelled",
@@ -19,6 +20,11 @@ const statusLabels: Record<Status, string> = {
   overdue: "Overdue",
   paid: "Paid",
   sent: "Sent"
+};
+
+const directionLabels: Record<Direction, string> = {
+  incoming: "Incoming / Sales invoice",
+  outgoing: "Outgoing / Purchase invoice"
 };
 
 type LineItem = {
@@ -127,6 +133,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
     const payload = {
       clientId: formData.get("clientId"),
       invoiceNumber: formData.get("invoiceNumber"),
+      direction: formData.get("direction") || "incoming",
       status: formData.get("status"),
       issueDate: formData.get("issueDate"),
       dueDate: formData.get("dueDate"),
@@ -198,7 +205,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
           />
         </label>
         <label className={labelClassName}>
-          Client
+          Client / supplier
           <select className={inputClassName} name="clientId" required defaultValue={clients[0].id}>
             {clients.map((client) => (
               <option key={client.id} value={client.id}>
@@ -208,6 +215,19 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
           </select>
           {fieldErrors.clientId ? (
             <span className="mt-1 block text-xs text-[#a13d3d]">{fieldErrors.clientId}</span>
+          ) : null}
+        </label>
+        <label className={labelClassName}>
+          Direction
+          <select className={inputClassName} name="direction" required defaultValue="incoming">
+            {invoiceDirectionValues.map((direction) => (
+              <option key={direction} value={direction}>
+                {directionLabels[direction]}
+              </option>
+            ))}
+          </select>
+          {fieldErrors.direction ? (
+            <span className="mt-1 block text-xs text-[#a13d3d]">{fieldErrors.direction}</span>
           ) : null}
         </label>
         <label className={labelClassName}>
