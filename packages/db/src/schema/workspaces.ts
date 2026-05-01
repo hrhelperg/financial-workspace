@@ -1,19 +1,6 @@
-import { index, pgTable, text, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
-import { timestamps, workspaceMemberRoleEnum, workspaceMemberStatusEnum } from "./common";
-
-export const users = pgTable(
-  "users",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    email: varchar("email", { length: 255 }).notNull(),
-    name: varchar("name", { length: 255 }),
-    imageUrl: text("image_url"),
-    ...timestamps()
-  },
-  (table) => ({
-    emailIdx: uniqueIndex("users_email_idx").on(table.email)
-  })
-);
+import { index, pgTable, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { timestamps, workspaceMemberRoleEnum, workspaceMemberStatusEnum } from "./enums";
+import { users } from "./users";
 
 export const workspaces = pgTable(
   "workspaces",
@@ -56,8 +43,6 @@ export const workspaceMembers = pgTable(
   })
 );
 
-export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
 export type Workspace = typeof workspaces.$inferSelect;
 export type NewWorkspace = typeof workspaces.$inferInsert;
 export type WorkspaceMember = typeof workspaceMembers.$inferSelect;

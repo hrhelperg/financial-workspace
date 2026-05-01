@@ -1,6 +1,6 @@
 import { date, index, pgTable, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
-import { emptyJson, subscriptionPlanEnum, subscriptionStatusEnum, timestamps } from "./common";
-import { workspaces } from "./identity";
+import { emptyJson, subscriptionPlanEnum, subscriptionStatusEnum, timestamps } from "./enums";
+import { workspaces } from "./workspaces";
 
 export const subscriptions = pgTable(
   "subscriptions",

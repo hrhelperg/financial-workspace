@@ -23,7 +23,13 @@ export const invoiceEventTypeEnum = pgEnum("invoice_event_type", [
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "completed", "failed", "refunded"]);
 export const paymentMethodEnum = pgEnum("payment_method", ["bank_transfer", "card", "cash", "check", "other"]);
 
-export const expenseCategoryTypeEnum = pgEnum("expense_category_type", ["operating", "cost_of_goods", "tax", "payroll", "other"]);
+export const expenseCategoryTypeEnum = pgEnum("expense_category_type", [
+  "operating",
+  "cost_of_goods",
+  "tax",
+  "payroll",
+  "other"
+]);
 export const expenseStatusEnum = pgEnum("expense_status", ["draft", "submitted", "approved", "rejected", "paid"]);
 
 export const cashflowSnapshotTypeEnum = pgEnum("cashflow_snapshot_type", ["daily", "weekly", "monthly", "quarterly"]);
@@ -35,8 +41,24 @@ export const financialInsightTypeEnum = pgEnum("financial_insight_type", [
   "revenue",
   "document"
 ]);
-export const financialInsightStatusEnum = pgEnum("financial_insight_status", ["open", "acknowledged", "resolved", "dismissed"]);
+export const financialInsightStatusEnum = pgEnum("financial_insight_status", [
+  "open",
+  "acknowledged",
+  "resolved",
+  "dismissed"
+]);
 export const insightSeverityEnum = pgEnum("insight_severity", ["info", "low", "medium", "high", "critical"]);
+
+export const relatedEntityTypeEnum = pgEnum("related_entity_type", [
+  "client",
+  "invoice",
+  "expense",
+  "payment",
+  "document",
+  "task",
+  "automation_rule",
+  "workspace"
+]);
 
 export const documentTypeEnum = pgEnum("document_type", [
   "contract",
@@ -49,14 +71,6 @@ export const documentTypeEnum = pgEnum("document_type", [
 ]);
 export const documentStatusEnum = pgEnum("document_status", ["uploaded", "processing", "ready", "archived", "failed"]);
 
-export const relatedEntityTypeEnum = pgEnum("related_entity_type", [
-  "client",
-  "invoice",
-  "expense",
-  "payment",
-  "document",
-  "workspace"
-]);
 export const taskStatusEnum = pgEnum("task_status", ["todo", "in_progress", "done", "cancelled"]);
 export const taskPriorityEnum = pgEnum("task_priority", ["low", "medium", "high", "urgent"]);
 
@@ -101,6 +115,7 @@ export const eventTypeEnum = pgEnum("event_type", [
 export const eventStatusEnum = pgEnum("event_status", ["scheduled", "completed", "cancelled", "failed"]);
 
 export const auditActionEnum = pgEnum("audit_action", ["create", "update", "delete", "login", "export", "automation"]);
+
 export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "trialing",
   "active",
@@ -113,10 +128,6 @@ export const subscriptionPlanEnum = pgEnum("subscription_plan", ["free", "starte
 export const timestamps = () => ({
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
-});
-
-export const createdAt = () => ({
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
 });
 
 export const emptyJson = <T extends Record<string, unknown>>(name: string) =>

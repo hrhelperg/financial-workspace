@@ -1,8 +1,10 @@
-import { date, index, numeric, pgTable, text, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { check, date, index, numeric, pgTable, text, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { clients } from "./clients";
-import { emptyJson, expenseCategoryTypeEnum, expenseStatusEnum, timestamps } from "./common";
+import { emptyJson, expenseCategoryTypeEnum, expenseStatusEnum, timestamps } from "./enums";
 import { documents } from "./documents";
-import { users, workspaces } from "./identity";
+import { users } from "./users";
+import { workspaces } from "./workspaces";
 
 export const expenseCategories = pgTable(
   "expense_categories",
@@ -49,6 +51,7 @@ export const expenses = pgTable(
     ...timestamps()
   },
   (table) => ({
+    amountPositiveCheck: check("expenses_amount_positive", sql`${table.amount} > 0`),
     categoryIdx: index("expenses_category_id_idx").on(table.categoryId),
     clientIdx: index("expenses_client_id_idx").on(table.clientId),
     dateIdx: index("expenses_expense_date_idx").on(table.expenseDate),

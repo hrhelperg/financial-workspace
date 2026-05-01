@@ -42,6 +42,7 @@ npm run lint
 npm run typecheck
 npm run db:generate
 npm run db:migrate
+npm run db:check
 npm run db:push
 npm run db:studio
 ```
@@ -100,7 +101,59 @@ The Drizzle schema lives in `packages/db/src/schema` and is split by domain. It 
 - `audit_logs`
 - `subscriptions`
 
-Set `DATABASE_URL` before running Drizzle commands. The default `.env.example` assumes a local PostgreSQL database named `financial_workspace`.
+The schema files live under `packages/db/src/schema`:
+
+- `enums.ts`
+- `users.ts`
+- `workspaces.ts`
+- `clients.ts`
+- `invoices.ts`
+- `payments.ts`
+- `expenses.ts`
+- `cashflow.ts`
+- `documents.ts`
+- `notes.ts`
+- `tasks.ts`
+- `automation.ts`
+- `events.ts`
+- `audit.ts`
+- `billing.ts`
+
+Set `DATABASE_URL` in `.env` before running Drizzle commands. The default `.env.example` assumes a local PostgreSQL database named `financial_workspace`.
+
+```bash
+cp .env.example .env
+```
+
+```env
+DATABASE_URL="postgres://financial_workspace:financial_workspace@localhost:5432/financial_workspace"
+```
+
+Generate SQL migrations from the schema:
+
+```bash
+npm run db:generate
+```
+
+Check generated migrations against the schema:
+
+```bash
+npm run db:check
+```
+
+Run migrations against the configured database:
+
+```bash
+npm run db:migrate
+```
+
+Open Drizzle Studio:
+
+```bash
+npm run db:studio
+```
+
+`db:push` is available only for local development and prototyping. Use generated migrations for shared, staging, and production databases.
 
 ## Automation
 

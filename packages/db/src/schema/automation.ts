@@ -6,8 +6,9 @@ import {
   automationTriggerEnum,
   emptyJson,
   timestamps
-} from "./common";
-import { users, workspaces } from "./identity";
+} from "./enums";
+import { users } from "./users";
+import { workspaces } from "./workspaces";
 
 export const automationRules = pgTable(
   "automation_rules",
@@ -63,6 +64,7 @@ export const automationEvents = pgTable(
     ruleIdx: index("automation_events_rule_id_idx").on(table.ruleId),
     scheduledForIdx: index("automation_events_scheduled_for_idx").on(table.scheduledFor),
     statusIdx: index("automation_events_status_idx").on(table.status),
+    statusScheduledForIdx: index("automation_events_status_scheduled_for_idx").on(table.status, table.scheduledFor),
     workspaceIdx: index("automation_events_workspace_id_idx").on(table.workspaceId),
     workspaceScheduledIdx: index("automation_events_workspace_scheduled_idx").on(table.workspaceId, table.scheduledFor)
   })

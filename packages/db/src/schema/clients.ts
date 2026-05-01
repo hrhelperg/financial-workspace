@@ -1,6 +1,7 @@
 import { index, integer, numeric, pgTable, text, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
-import { clientStatusEnum, emptyJson, paymentRiskLevelEnum, timestamps } from "./common";
-import { users, workspaces } from "./identity";
+import { clientStatusEnum, emptyJson, paymentRiskLevelEnum, timestamps } from "./enums";
+import { users } from "./users";
+import { workspaces } from "./workspaces";
 
 export const clients = pgTable(
   "clients",

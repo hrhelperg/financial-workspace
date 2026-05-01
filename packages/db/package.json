@@ -14,18 +14,21 @@
     "lint": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:check": "drizzle-kit check",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "drizzle-orm": "latest",
-    "postgres": "latest"
+    "dotenv": "latest",
+    "pg": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",
-    "dotenv": "latest",
+    "@types/pg": "latest",
     "drizzle-kit": "latest",
+    "tsx": "latest",
     "typescript": "latest"
   }
 }

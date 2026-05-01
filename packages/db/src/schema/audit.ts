@@ -1,6 +1,7 @@
 import { index, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
-import { auditActionEnum, emptyJson } from "./common";
-import { users, workspaces } from "./identity";
+import { auditActionEnum, emptyJson } from "./enums";
+import { users } from "./users";
+import { workspaces } from "./workspaces";
 
 export const auditLogs = pgTable(
   "audit_logs",

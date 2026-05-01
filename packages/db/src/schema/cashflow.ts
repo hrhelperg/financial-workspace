@@ -6,8 +6,8 @@ import {
   financialInsightTypeEnum,
   insightSeverityEnum,
   timestamps
-} from "./common";
-import { workspaces } from "./identity";
+} from "./enums";
+import { workspaces } from "./workspaces";
 
 export const cashflowSnapshots = pgTable(
   "cashflow_snapshots",

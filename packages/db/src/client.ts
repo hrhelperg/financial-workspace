@@ -1,5 +1,6 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import "dotenv/config";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import * as schema from "./schema/index";
 
 export function createDatabaseClient(databaseUrl = process.env.DATABASE_URL) {
@@ -7,12 +8,14 @@ export function createDatabaseClient(databaseUrl = process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL is required to create a database client.");
   }
 
-  const queryClient = postgres(databaseUrl, {
-    prepare: false
+  const pool = new Pool({
+    connectionString: databaseUrl
   });
 
-  return drizzle(queryClient, { schema });
+  return drizzle(pool, { schema });
 }
+
+export const db = createDatabaseClient();
 
 export type Database = ReturnType<typeof createDatabaseClient>;
 export { schema };
