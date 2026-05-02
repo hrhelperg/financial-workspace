@@ -55,7 +55,7 @@ export function AppShell({ children, locale }: { children: ReactNode; locale: Lo
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-[#d8ded8] bg-white px-4 py-5 lg:block">
         <Link href={localizePath("/dashboard", locale)} className="flex items-center gap-3 rounded-md px-2 py-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#0f766e] text-white">
-            <Zap className="h-5 w-5" aria-hidden="true" />
+            <WalletCards className="h-5 w-5" aria-hidden="true" />
           </span>
           <span>
             <span className="block text-sm font-semibold tracking-normal">{t("brand.line1")}</span>
@@ -100,7 +100,7 @@ export function AppShell({ children, locale }: { children: ReactNode; locale: Lo
           <div className="flex items-center gap-3">
             <Link href={localizePath("/dashboard", locale)} className="flex items-center gap-2 rounded-md lg:hidden">
               <span className="flex h-9 w-9 items-center justify-center rounded-md bg-[#0f766e] text-white">
-                <Zap className="h-5 w-5" aria-hidden="true" />
+                <WalletCards className="h-5 w-5" aria-hidden="true" />
               </span>
               <span className="text-sm font-semibold">{t("brand.name")}</span>
             </Link>

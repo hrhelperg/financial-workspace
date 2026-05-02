@@ -1,8 +1,8 @@
+import { BRAND_DOMAIN, BRAND_NAME } from "./brand";
+
 declare const process:
   | { env: Record<string, string | undefined> }
   | undefined;
-
-const DEFAULT_DOMAIN = "yourdomain.com";
 
 function resolveBrandingDomain(): string {
   const env = typeof process !== "undefined" ? process.env : undefined;
@@ -10,21 +10,23 @@ function resolveBrandingDomain(): string {
   if (fromEnv && fromEnv.trim().length > 0) {
     return fromEnv.trim();
   }
-  return DEFAULT_DOMAIN;
+  return BRAND_DOMAIN;
 }
 
-export const EXPORT_BRANDING_TEXT = "Built with Financial Workspace";
+export { BRAND_DOMAIN, BRAND_NAME };
+
+export const EXPORT_BRANDING_TEXT = `Built with ${BRAND_NAME}`;
 
 export function getExportBrandingCta(domain: string = resolveBrandingDomain()): string {
   return `Create your own: ${domain}`;
 }
 
-export const EXPORT_BRANDING_CTA = getExportBrandingCta();
+export const EXPORT_BRANDING_CTA = `Create your own: ${BRAND_DOMAIN}`;
 
 export const exportBranding = {
   text: EXPORT_BRANDING_TEXT,
   cta: EXPORT_BRANDING_CTA,
-  domain: resolveBrandingDomain()
+  domain: BRAND_DOMAIN
 } as const;
 
 export { resolveBrandingDomain };
