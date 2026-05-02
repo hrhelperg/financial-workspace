@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Financial Workspace",
-    "description": "Finanzarbeitsbereich für Kunden, Rechnungen, Ausgaben, Dokumente und Automatisierung."
+    "title": "Cash Workspace | Finance templates for freelancers and small businesses",
+    "description": "Pick a finance template and get a ready Cash Workspace for invoices, expenses, forecasts, documents, fiscal folders, and accountant-ready exports."
   },
   "language": {
     "label": "Sprache",
@@ -14,21 +14,132 @@
     "ru": "Russisch"
   },
   "brand": {
-    "name": "Financial Workspace",
-    "line1": "Financial",
+    "name": "Cash Workspace",
+    "line1": "Cash",
     "line2": "Workspace"
   },
   "landing": {
-    "eyebrow": "Financial Workspace",
-    "title": "Finanzabläufe für Freelancer und kleine Teams",
-    "description": "Verwalten Sie Kunden, Rechnungen, Ausgaben, Dokumente, Cashflow, Prognosen und Steuerexporte, ohne alles in Tabellen zu verlieren.",
-    "primaryCta": "Dashboard öffnen",
-    "secondaryCta": "Anmelden",
-    "cardsTitle": "Gebaut für finanzielle Kontrolle",
-    "clients": "Kundendaten, Zahlungsprofile und Teamzugriff bleiben pro Workspace organisiert.",
-    "invoices": "Eingehende Verkaufsrechnungen und ausgehende Einkaufsrechnungen werden nach Geschäftsjahr gruppiert.",
-    "cashflow": "Planen Sie erwartete Einnahmen, erwartete Ausgaben und den projizierten Nettobetrag.",
-    "documents": "Bereiten Sie Buchhalterordner und Steuerexporte vor."
+    "header": {
+      "signIn": "Sign in",
+      "getStarted": "Get started",
+      "product": "Product",
+      "useFreelancerTemplate": "Use the Freelancer template"
+    },
+    "hero": {
+      "eyebrow": "Cash Workspace templates",
+      "title": "Your finances, in one workspace.",
+      "subtitle": "Pick a template and start with a structured finance system: invoices, expenses, forecasts, documents, fiscal folders, and accountant-ready exports.",
+      "primaryCta": "Use the Freelancer template",
+      "secondaryCta": "Explore templates",
+      "previewTitle": "Freelancer Finance Dashboard",
+      "previewSubtitle": "Ready workspace installed from a template",
+      "previewFiles": "24 files",
+      "previewFolderIncoming": "fiscal/2026/incoming",
+      "previewFolderOutgoing": "fiscal/2026/outgoing"
+    },
+    "socialProof": {
+      "headline": "Credibility based on the product, not borrowed logos.",
+      "fact1Label": "Tenant isolated",
+      "fact1Body": "workspace-scoped access",
+      "fact2Label": "Idempotent install",
+      "fact2Body": "safe to retry",
+      "fact3Label": "Audit log built in",
+      "fact3Body": "every change tracked"
+    },
+    "templatesSection": {
+      "heading": "Templates are the fastest way to a working finance system.",
+      "subheading": "Start with a workspace designed for how you operate. Each template defines categories, fiscal folders, dashboard structure, and the workflows you need next.",
+      "useTemplate": "Use the Freelancer template",
+      "comingSoon": "Coming soon",
+      "allFree": "Start with the Freelancer template today. More templates are being prepared for small businesses, agencies, tax exports, and forecasting."
+    },
+    "productSections": {
+      "heading": "Everything organized around cash operations.",
+      "subheading": "Cash Workspace is accounting-lite: structured enough for fiscal discipline, simple enough to use every week.",
+      "items": {
+        "invoices": {
+          "title": "Invoices by direction",
+          "body": "Separate incoming sales invoices from outgoing supplier bills, then group them by fiscal year for cleaner tax work."
+        },
+        "expenses": {
+          "title": "Expenses with context",
+          "body": "Track vendors, categories, dates, and payment status without turning operational spend into another loose spreadsheet."
+        },
+        "forecast": {
+          "title": "Simple yearly forecast",
+          "body": "Plan expected income, expected expenses, and projected net so decisions are grounded in cash, not guesswork."
+        },
+        "documents": {
+          "title": "Fiscal folders and exports",
+          "body": "Keep documents tied to financial records and prepare accountant-ready fiscal folder structures when tax season arrives."
+        }
+      }
+    },
+    "workflow": {
+      "heading": "From template to accountant-ready export.",
+      "subheading": "The workflow is deliberately structured: install once, operate weekly, export cleanly.",
+      "steps": {
+        "install": {
+          "title": "1. Install a template",
+          "body": "Choose the Freelancer template and get categories, folders, dashboard widgets, and forecast structure in your workspace."
+        },
+        "operate": {
+          "title": "2. Run financial operations",
+          "body": "Manage clients, invoices, supplier bills, expenses, documents, and forecast assumptions from one structured place."
+        },
+        "export": {
+          "title": "3. Prepare fiscal handoff",
+          "body": "Group invoices and documents by fiscal year and direction so an accountant can review the right package faster."
+        }
+      }
+    },
+    "features": {
+      "heading": "Built like financial infrastructure, presented like a clean workspace.",
+      "subheading": "Simple on the surface. Strict about tenancy, retries, exports, and auditability underneath.",
+      "items": {
+        "isolated": {
+          "title": "Workspace-isolated",
+          "body": "Multi-tenant from day one. Row-level security in Postgres — your data can't leak across workspaces, even if the app code has a bug."
+        },
+        "atomic": {
+          "title": "Atomic + idempotent",
+          "body": "Every invoice, expense, and template install is transactional and safe to retry. No partial writes, no duplicate rows."
+        },
+        "taxExport": {
+          "title": "Tax-export ready",
+          "body": "One-click ZIP grouped by fiscal year and direction, with a summary.csv your accountant can open."
+        },
+        "audit": {
+          "title": "Audit log built-in",
+          "body": "Every mutation is logged with before/after snapshots. You see what changed, when, and by whom."
+        }
+      }
+    },
+    "secondaryCta": {
+      "headline": "Start with the Freelancer template.",
+      "subheadline": "Get a working finance workspace first, then customize it around how your business gets paid.",
+      "cta": "Use the Freelancer template"
+    },
+    "footer": {
+      "product": "Product",
+      "company": "Company",
+      "templates": "Templates",
+      "resources": "Resources",
+      "links": {
+        "dashboard": "Dashboard",
+        "invoices": "Invoices",
+        "expenses": "Expenses",
+        "forecast": "Forecast",
+        "about": "About",
+        "contact": "Contact",
+        "privacy": "Privacy",
+        "terms": "Terms",
+        "changelog": "Changelog",
+        "status": "Status",
+        "roadmap": "Roadmap"
+      },
+      "copyright": "© {{year}} · Built with Cash Workspace · {{domain}}"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -173,7 +284,7 @@
   "invoices": {
     "eyebrow": "Abrechnung",
     "title": "Rechnungen",
-    "description": "Verfolgen Sie Verkaufs- und Einkaufsrechnungen, Fälligkeiten und steuerliche Ordnung.",
+    "description": "Beschreibung",
     "newInvoice": "Neue Rechnung",
     "listTitle": "Rechnungsliste",
     "listDescription": "Nach Geldrichtung filtern und Geschäftsjahr-Metadaten prüfen.",
@@ -212,7 +323,6 @@
     "terms": "Bedingungen",
     "itemsTitle": "Rechnungspositionen",
     "addItem": "Position hinzufügen",
-    "description": "Beschreibung",
     "descriptionPlaceholder": "Beratung, Design oder operative Arbeit",
     "quantity": "Menge",
     "unitPrice": "Einzelpreis",
@@ -307,7 +417,82 @@
     "title": "Vorlagen",
     "description": "Wiederverwendbare Workspace-Einrichtungen für Freelancer und kleine Unternehmen.",
     "freelancerName": "Freelancer-Finanzdashboard",
-    "freelancerTagline": "Einnahmen, Ausgaben und Runway an einem Ort verfolgen — für Solo-Unternehmer."
+    "freelancerTagline": "Einnahmen, Ausgaben und Runway an einem Ort verfolgen — für Solo-Unternehmer.",
+    "actions": {
+      "useTemplate": "Use template"
+    },
+    "cards": {
+      "freelancer": {
+        "name": "Freelancer Finance Dashboard",
+        "headline": "A ready finance dashboard for solo operators.",
+        "tagline": "Track income, expenses, forecast, and fiscal folders in one structured workspace.",
+        "target": "Best for freelancers, consultants, creators, and solo service businesses.",
+        "bullet1": "Prebuilt expense categories for deductible spend",
+        "bullet2": "Incoming invoice workflow with fiscal-year organization",
+        "bullet3": "Tax and contract folders for accountant handoff",
+        "cta": "Use the Freelancer template"
+      },
+      "smallBusiness": {
+        "name": "Small Business Finance OS",
+        "headline": "Cash operations for growing owner-led teams.",
+        "tagline": "Organize vendors, outgoing bills, cashflow, and monthly operating spend.",
+        "target": "Best for small teams managing vendors, payroll-adjacent expenses, and recurring bills.",
+        "bullet1": "Vendor and bill organization",
+        "bullet2": "Monthly burn and cashflow structure",
+        "bullet3": "Owner-friendly financial overview",
+        "cta": "Preview coming soon"
+      },
+      "agency": {
+        "name": "Agency Finance Workspace",
+        "headline": "Client revenue and delivery spend in one workspace.",
+        "tagline": "Connect client invoices, project costs, contractors, and margin signals.",
+        "target": "Best for studios, agencies, and service teams with multiple active clients.",
+        "bullet1": "Client revenue tracking",
+        "bullet2": "Project and contractor expense structure",
+        "bullet3": "Margin-oriented workspace views",
+        "cta": "Preview coming soon"
+      },
+      "taxExport": {
+        "name": "Tax / Accountant Export Pack",
+        "headline": "A cleaner fiscal handoff for tax season.",
+        "tagline": "Group invoices, bills, receipts, and summaries by fiscal year and direction.",
+        "target": "Best for operators who want a clean accountant review package.",
+        "bullet1": "Fiscal folder structure",
+        "bullet2": "Incoming and outgoing document grouping",
+        "bullet3": "Summary metadata for accountant review",
+        "cta": "Preview coming soon"
+      },
+      "forecast": {
+        "name": "Financial Forecast",
+        "headline": "A practical forecast without a finance team.",
+        "tagline": "Plan expected income, expenses, projected net, and runway assumptions.",
+        "target": "Best for teams that need forward visibility without complex accounting.",
+        "bullet1": "Expected income and expense planning",
+        "bullet2": "Projected net calculation",
+        "bullet3": "Simple yearly forecast workflow",
+        "cta": "Preview coming soon"
+      }
+    },
+    "install": {
+      "title": "Install template",
+      "describesWillCreate": "Will create:",
+      "expenseCategories": "{{count}} expense categories",
+      "documentFolders": "{{count}} document folders",
+      "dashboardWidgets": "{{count}} dashboard widgets",
+      "forecastSkeleton": "{{months}}-month forecast skeleton",
+      "confirmCta": "Install into {{workspace}}",
+      "cancelCta": "Cancel",
+      "successTitle": "Template installed",
+      "successBody": "{{count}} expense categories were added to {{workspace}}.",
+      "alreadyInstalled": "This template was already installed in {{workspace}}.",
+      "errorTitle": "Couldn't install template",
+      "errorAuth": "You need to be signed in to install a template.",
+      "errorRole": "You need admin or owner role to install a template.",
+      "errorNotFound": "Template not found.",
+      "errorInvalidConfig": "Template config is invalid.",
+      "errorIdempotency": "An earlier install used this URL with different parameters. Please try again from the templates page.",
+      "errorGeneric": "Something went wrong. Please try again."
+    }
   },
   "settings": {
     "eyebrow": "Betrieb",
@@ -378,7 +563,7 @@
     "fiscalYearRequired": "Ein gültiges Geschäftsjahr ist erforderlich."
   },
   "exportBranding": {
-    "text": "Erstellt mit Financial Workspace",
-    "cta": "Eigenes erstellen: {{domain}}"
+    "text": "Built with Cash Workspace",
+    "cta": "Create your own: {{domain}}"
   }
 }

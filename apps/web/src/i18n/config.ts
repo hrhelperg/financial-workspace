@@ -71,5 +71,10 @@ export function getLocalizedAlternates(pathname: string) {
 }
 
 export function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const domain = process.env.NEXT_PUBLIC_APP_DOMAIN?.trim();
+  if (domain) {
+    return domain.startsWith("http://") || domain.startsWith("https://") ? domain : `https://${domain}`;
+  }
+
+  return process.env.NEXT_PUBLIC_APP_URL ?? "https://financial-workspace-web.vercel.app";
 }
