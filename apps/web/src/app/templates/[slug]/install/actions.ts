@@ -58,5 +58,6 @@ export async function installTemplateAction(formData: FormData) {
     buildErrorRedirect(slug, locale, "errorGeneric");
   }
 
-  redirect(`${localizePath("/dashboard", locale)}?installed=${encodeURIComponent(slug)}`);
+  const params = new URLSearchParams({ installed: "1" });
+  redirect(`${localizePath(`/templates/${encodeURIComponent(slug)}/install`, locale)}?${params.toString()}`);
 }

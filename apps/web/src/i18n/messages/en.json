@@ -261,7 +261,11 @@
     "workspaceReadyDescription": "Start with the highest-value actions: create your first invoice, record an expense, or review the yearly forecast created for this workspace.",
     "nextCreateInvoice": "Create invoice",
     "nextAddExpense": "Add expense",
-    "nextViewForecast": "View forecast"
+    "nextViewForecast": "View forecast",
+    "onboardingTitle": "Get started",
+    "onboardingDescription": "Complete the first three actions to turn the template into your operating workspace.",
+    "onboardingProgress": "{{completed}}/{{total}} complete",
+    "onboardingCompleteTitle": "You're set up"
   },
   "clients": {
     "eyebrow": "Relationships",
@@ -351,10 +355,21 @@
     "vendor": "Vendor",
     "category": "Category",
     "date": "Date",
+    "guidedTitle": "Add your first expense",
+    "guidedDescription": "Start from a realistic software expense and adjust the details before saving.",
+    "saveGuided": "Save expense",
+    "uncategorized": "Uncategorized",
     "categories": {
       "aiTools": "AI tools",
       "hosting": "Hosting",
       "software": "Software"
+    },
+    "status": {
+      "approved": "Approved",
+      "draft": "Draft",
+      "paid": "Paid",
+      "rejected": "Rejected",
+      "submitted": "Submitted"
     }
   },
   "cashflow": {
@@ -489,8 +504,11 @@
       "forecastSkeleton": "{{months}}-month forecast skeleton",
       "confirmCta": "Install into {{workspace}}",
       "cancelCta": "Cancel",
-      "successTitle": "Template installed",
+      "successTitle": "Your workspace is ready",
       "successBody": "{{count}} expense categories were added to {{workspace}}.",
+      "successEyebrow": "Workspace ready",
+      "successDescription": "{{template}} is installed with sample invoices, expenses, forecast data, and categories.",
+      "openDashboardCta": "Open dashboard",
       "alreadyInstalled": "This template was already installed in {{workspace}}.",
       "errorTitle": "Couldn't install template",
       "errorAuth": "You need to be signed in to install a template.",

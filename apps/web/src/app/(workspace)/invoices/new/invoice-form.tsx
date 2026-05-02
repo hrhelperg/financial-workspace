@@ -10,6 +10,7 @@ import {
   primaryButtonClassName,
   secondaryButtonClassName
 } from "@/components/form-styles";
+import { markOnboardingStepComplete } from "@/components/onboarding-panel";
 import { localeHeaderName } from "@/i18n/config";
 import { useLocale, useLocalizedPath, useTranslator } from "@/i18n/client";
 
@@ -27,6 +28,18 @@ type LineItem = {
 type ClientOption = { id: string; name: string };
 
 type FieldErrors = Record<string, string>;
+
+type InvoiceFormDefaults = {
+  clientId?: string;
+  invoiceNumber?: string;
+  direction?: Direction;
+  status?: Status;
+  issueDate?: string;
+  dueDate?: string;
+  terms?: string;
+  notes?: string;
+  items?: Array<Omit<LineItem, "id">>;
+};
 
 type ApiErrorResponse = {
   errors?: Array<{ field: string; message: string }>;
@@ -65,7 +78,15 @@ function addDaysIso(days: number): string {
   return date.toISOString().slice(0, 10);
 }
 
-export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
+export function InvoiceForm({
+  clients,
+  defaultValues,
+  guidedStep
+}: {
+  clients: ClientOption[];
+  defaultValues?: InvoiceFormDefaults;
+  guidedStep?: "invoice";
+}) {
   const router = useRouter();
   const locale = useLocale();
   const localize = useLocalizedPath();
@@ -73,7 +94,14 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const [lineItems, setLineItems] = useState<LineItem[]>([blankLineItem()]);
+  const [lineItems, setLineItems] = useState<LineItem[]>(() =>
+    defaultValues?.items?.length
+      ? defaultValues.items.map((item) => ({
+          ...item,
+          id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
+        }))
+      : [blankLineItem()]
+  );
 
   const totals = useMemo(() => {
     let subtotal = 0;
@@ -168,7 +196,12 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
         return;
       }
 
-      router.push(localize("/invoices"));
+      if (guidedStep) {
+        markOnboardingStepComplete(guidedStep);
+        router.push(localize("/dashboard"));
+      } else {
+        router.push(localize("/invoices"));
+      }
       router.refresh();
     } catch {
       setGeneralError(t("common.errors.network"));
@@ -192,13 +225,14 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
           {t("invoices.invoiceNumber")}
           <input
             className={inputClassName}
+            defaultValue={defaultValues?.invoiceNumber}
             name="invoiceNumber"
             placeholder={t("invoices.invoiceNumberPlaceholder")}
           />
         </label>
         <label className={labelClassName}>
           {t("invoices.clientSupplier")}
-          <select className={inputClassName} name="clientId" required defaultValue={clients[0].id}>
+          <select className={inputClassName} name="clientId" required defaultValue={defaultValues?.clientId ?? clients[0].id}>
             {clients.map((client) => (
               <option key={client.id} value={client.id}>
                 {client.name}
@@ -211,7 +245,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
         </label>
         <label className={labelClassName}>
           {t("common.labels.direction")}
-          <select className={inputClassName} name="direction" required defaultValue="incoming">
+          <select className={inputClassName} name="direction" required defaultValue={defaultValues?.direction ?? "incoming"}>
             {invoiceDirectionValues.map((direction) => (
               <option key={direction} value={direction}>
                 {direction === "incoming" ? t("invoices.incomingLong") : t("invoices.outgoingLong")}
@@ -224,7 +258,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
         </label>
         <label className={labelClassName}>
           {t("common.labels.status")}
-          <select className={inputClassName} name="status" required defaultValue="draft">
+          <select className={inputClassName} name="status" required defaultValue={defaultValues?.status ?? "draft"}>
             {invoiceStatusValues.map((status) => (
               <option key={status} value={status}>
                 {t(`invoices.status.${status}`)}
@@ -234,21 +268,21 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
         </label>
         <label className={labelClassName}>
           {t("invoices.issueDate")}
-          <input className={inputClassName} defaultValue={todayIso()} name="issueDate" required type="date" />
+          <input className={inputClassName} defaultValue={defaultValues?.issueDate ?? todayIso()} name="issueDate" required type="date" />
           {fieldErrors.issueDate ? (
             <span className="mt-1 block text-xs text-[#a13d3d]">{fieldErrors.issueDate}</span>
           ) : null}
         </label>
         <label className={labelClassName}>
           {t("invoices.dueDate")}
-          <input className={inputClassName} defaultValue={addDaysIso(14)} name="dueDate" required type="date" />
+          <input className={inputClassName} defaultValue={defaultValues?.dueDate ?? addDaysIso(14)} name="dueDate" required type="date" />
           {fieldErrors.dueDate ? (
             <span className="mt-1 block text-xs text-[#a13d3d]">{fieldErrors.dueDate}</span>
           ) : null}
         </label>
         <label className={labelClassName}>
           {t("invoices.terms")}
-          <input className={inputClassName} defaultValue="Net 14" name="terms" />
+          <input className={inputClassName} defaultValue={defaultValues?.terms ?? "Net 14"} name="terms" />
         </label>
       </div>
 
@@ -330,6 +364,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
           {t("common.labels.notes")}
           <textarea
             className={`${inputClassName} min-h-24 resize-y`}
+            defaultValue={defaultValues?.notes}
             name="notes"
             placeholder={t("invoices.notesPlaceholder")}
           />

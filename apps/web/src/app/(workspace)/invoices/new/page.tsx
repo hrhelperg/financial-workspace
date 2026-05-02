@@ -9,10 +9,18 @@ import { InvoiceForm } from "./invoice-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewInvoicePage() {
+type NewInvoicePageProps = {
+  searchParams: Promise<{
+    guided?: string;
+  }>;
+};
+
+export default async function NewInvoicePage({ searchParams }: NewInvoicePageProps) {
   const { locale, t } = await getI18n();
+  const params = await searchParams;
   const clients = await listClients();
   const clientOptions = clients.map((client) => ({ id: client.id, name: client.name }));
+  const isGuided = params.guided === "invoice";
 
   return (
     <div className="space-y-6">
@@ -51,7 +59,29 @@ export default async function NewInvoicePage() {
               </Link>
             </div>
           ) : (
-            <InvoiceForm clients={clientOptions} />
+            <InvoiceForm
+              clients={clientOptions}
+              guidedStep={isGuided ? "invoice" : undefined}
+              defaultValues={
+                isGuided
+                  ? {
+                      clientId: clientOptions[0].id,
+                      direction: "incoming",
+                      status: "draft",
+                      terms: "Net 14",
+                      notes: "First invoice drafted from the Cash Workspace onboarding checklist.",
+                      items: [
+                        {
+                          description: "Freelance project deposit",
+                          quantity: 1,
+                          unitPrice: 1500,
+                          taxRate: 0
+                        }
+                      ]
+                    }
+                  : undefined
+              }
+            />
           )}
         </div>
       </Panel>

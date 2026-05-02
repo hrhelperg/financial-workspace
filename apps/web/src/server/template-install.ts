@@ -1,10 +1,15 @@
 import "server-only";
-import { createHash } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { createHash, randomUUID } from "node:crypto";
+import { and, eq, inArray } from "drizzle-orm";
 import {
   auditLogs,
+  clients,
   db,
+  expenses,
   expenseCategories,
+  financialForecasts,
+  invoiceItems,
+  invoices,
   templateInstalls,
   templateVersions,
   templates,
@@ -59,6 +64,10 @@ export type InstallTemplateInput = {
 
 export type TemplateInstallResultPayload = {
   expenseCategoryIds: string[];
+  seededClientId?: string;
+  seededExpenseIds?: string[];
+  seededForecastYear?: number;
+  seededInvoiceIds?: string[];
 };
 
 export type InstallTemplateOutput = {
@@ -130,6 +139,23 @@ function isInstallResultPayload(value: unknown): value is TemplateInstallResultP
     Array.isArray(candidate.expenseCategoryIds) &&
     candidate.expenseCategoryIds.every((id) => typeof id === "string")
   );
+}
+
+function dateInCurrentYear(month: number, day: number) {
+  const year = new Date().getFullYear();
+  return {
+    date: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+    year
+  };
+}
+
+function buildInvoiceStoragePath(input: {
+  workspaceId: string;
+  fiscalYear: number;
+  direction: "incoming" | "outgoing";
+  invoiceId: string;
+}) {
+  return `workspaces/${input.workspaceId}/fiscal/${input.fiscalYear}/${input.direction}/invoices/${input.invoiceId}.pdf`;
 }
 
 export async function installTemplate(input: InstallTemplateInput): Promise<InstallTemplateOutput> {
@@ -212,8 +238,258 @@ export async function installTemplate(input: InstallTemplateInput): Promise<Inst
         .returning();
     }
 
+    const categoryRows =
+      config.expenseCategories.length > 0
+        ? await tx
+            .select({
+              id: expenseCategories.id,
+              name: expenseCategories.name
+            })
+            .from(expenseCategories)
+            .where(
+              and(
+                eq(expenseCategories.workspaceId, workspaceId),
+                inArray(expenseCategories.name, config.expenseCategories.map((category) => category.name))
+              )
+            )
+        : [];
+    const categoryIdByName = new Map(categoryRows.map((category) => [category.name, category.id]));
+
+    const [existingSeedClient] = await tx
+      .select({ id: clients.id })
+      .from(clients)
+      .where(and(eq(clients.workspaceId, workspaceId), eq(clients.name, "Northstar Studio")))
+      .limit(1);
+
+    const [seedClient] = existingSeedClient
+      ? [existingSeedClient]
+      : await tx
+          .insert(clients)
+          .values({
+            workspaceId,
+            ownerUserId: user.id,
+            name: "Northstar Studio",
+            companyName: "Northstar Studio",
+            email: "finance@northstar.example",
+            status: "active",
+            notes: "Sample client from the Freelancer Finance Dashboard template.",
+            metadata: {
+              source: "template_seed",
+              template_slug: template.slug
+            }
+          })
+          .returning({ id: clients.id });
+
+    const invoiceSeedData = [
+      {
+        invoiceNumber: "CW-DEMO-001",
+        direction: "incoming" as const,
+        status: "sent" as const,
+        issue: dateInCurrentYear(1, 12),
+        due: dateInCurrentYear(1, 26),
+        description: "Brand strategy sprint",
+        unitPrice: "2400.00",
+        taxAmount: "0.00",
+        totalAmount: "2400.00",
+        amountPaid: "0.00"
+      },
+      {
+        invoiceNumber: "CW-DEMO-002",
+        direction: "incoming" as const,
+        status: "paid" as const,
+        issue: dateInCurrentYear(2, 8),
+        due: dateInCurrentYear(2, 22),
+        description: "Monthly advisory retainer",
+        unitPrice: "1800.00",
+        taxAmount: "0.00",
+        totalAmount: "1800.00",
+        amountPaid: "1800.00"
+      },
+      {
+        invoiceNumber: "CW-DEMO-003",
+        direction: "outgoing" as const,
+        status: "draft" as const,
+        issue: dateInCurrentYear(3, 4),
+        due: dateInCurrentYear(3, 18),
+        description: "Contractor design support",
+        unitPrice: "650.00",
+        taxAmount: "0.00",
+        totalAmount: "650.00",
+        amountPaid: "0.00"
+      }
+    ];
+    const seededInvoiceIds: string[] = [];
+
+    for (const seed of invoiceSeedData) {
+      const invoiceId = randomUUID();
+      const [createdInvoice] = await tx
+        .insert(invoices)
+        .values({
+          id: invoiceId,
+          workspaceId,
+          clientId: seedClient.id,
+          invoiceNumber: seed.invoiceNumber,
+          direction: seed.direction,
+          status: seed.status,
+          issueDate: seed.issue.date,
+          dueDate: seed.due.date,
+          fiscalYear: seed.issue.year,
+          storagePath: buildInvoiceStoragePath({
+            workspaceId,
+            fiscalYear: seed.issue.year,
+            direction: seed.direction,
+            invoiceId
+          }),
+          subtotalAmount: seed.unitPrice,
+          taxAmount: seed.taxAmount,
+          totalAmount: seed.totalAmount,
+          amountPaid: seed.amountPaid,
+          currency: config.invoiceDefaults?.currency ?? config.workspace.baseCurrency ?? "USD",
+          notes: "Sample invoice from the Freelancer Finance Dashboard template.",
+          terms: `Net ${config.invoiceDefaults?.paymentTermsDays ?? 14}`,
+          sentAt: seed.status === "sent" ? new Date() : null,
+          paidAt: seed.status === "paid" ? new Date() : null,
+          metadata: {
+            source: "template_seed",
+            template_slug: template.slug
+          }
+        })
+        .onConflictDoNothing({ target: [invoices.workspaceId, invoices.invoiceNumber] })
+        .returning({ id: invoices.id });
+
+      if (!createdInvoice) {
+        continue;
+      }
+
+      seededInvoiceIds.push(createdInvoice.id);
+      await tx.insert(invoiceItems).values({
+        workspaceId,
+        invoiceId: createdInvoice.id,
+        description: seed.description,
+        quantity: "1.00",
+        unitPrice: seed.unitPrice,
+        taxRate: "0.00",
+        taxAmount: seed.taxAmount,
+        lineTotal: seed.totalAmount,
+        sortOrder: 0,
+        metadata: {
+          source: "template_seed",
+          template_slug: template.slug
+        }
+      });
+    }
+
+    const expenseSeedData = [
+      {
+        vendor: "Figma",
+        categoryName: "Software & SaaS",
+        description: "Design subscription",
+        amount: "96.00",
+        date: dateInCurrentYear(1, 18).date,
+        status: "paid" as const
+      },
+      {
+        vendor: "Vercel",
+        categoryName: "Software & SaaS",
+        description: "Hosting and deployment",
+        amount: "120.00",
+        date: dateInCurrentYear(2, 3).date,
+        status: "paid" as const
+      },
+      {
+        vendor: "Local Coworking",
+        categoryName: "Office",
+        description: "Monthly workspace pass",
+        amount: "310.00",
+        date: dateInCurrentYear(2, 12).date,
+        status: "approved" as const
+      },
+      {
+        vendor: "Accountant",
+        categoryName: "Professional services",
+        description: "Quarterly bookkeeping review",
+        amount: "450.00",
+        date: dateInCurrentYear(3, 8).date,
+        status: "submitted" as const
+      },
+      {
+        vendor: "Portfolio Ads",
+        categoryName: "Marketing",
+        description: "Lead generation campaign",
+        amount: "275.00",
+        date: dateInCurrentYear(3, 15).date,
+        status: "approved" as const
+      }
+    ];
+    const seededExpenseIds: string[] = [];
+
+    for (const seed of expenseSeedData) {
+      const [existingExpense] = await tx
+        .select({ id: expenses.id })
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.workspaceId, workspaceId),
+            eq(expenses.vendor, seed.vendor),
+            eq(expenses.expenseDate, seed.date),
+            eq(expenses.amount, seed.amount)
+          )
+        )
+        .limit(1);
+
+      if (existingExpense) {
+        continue;
+      }
+
+      const [createdExpense] = await tx
+        .insert(expenses)
+        .values({
+          workspaceId,
+          categoryId: categoryIdByName.get(seed.categoryName) ?? null,
+          submittedByUserId: user.id,
+          vendor: seed.vendor,
+          description: seed.description,
+          amount: seed.amount,
+          currency: config.workspace.baseCurrency ?? "USD",
+          expenseDate: seed.date,
+          status: seed.status,
+          metadata: {
+            source: "template_seed",
+            template_slug: template.slug
+          }
+        })
+        .returning({ id: expenses.id });
+
+      if (createdExpense) {
+        seededExpenseIds.push(createdExpense.id);
+      }
+    }
+
+    const currentYear = new Date().getFullYear();
+    const expectedIncome = config.forecast?.expectedMonthlyIncome
+      ? (config.forecast.expectedMonthlyIncome * 12).toFixed(2)
+      : "96000.00";
+    const expectedExpenses = config.forecast?.expectedMonthlyExpenses
+      ? (config.forecast.expectedMonthlyExpenses * 12).toFixed(2)
+      : "42000.00";
+    const [seededForecast] = await tx
+      .insert(financialForecasts)
+      .values({
+        workspaceId,
+        year: currentYear,
+        expectedIncome,
+        expectedExpenses,
+        currency: config.workspace.baseCurrency ?? "USD"
+      })
+      .onConflictDoNothing({ target: [financialForecasts.workspaceId, financialForecasts.year] })
+      .returning({ year: financialForecasts.year });
+
     const result: TemplateInstallResultPayload = {
-      expenseCategoryIds: seededCategories.map((row) => row.id)
+      expenseCategoryIds: categoryRows.map((row) => row.id),
+      seededClientId: seedClient.id,
+      seededExpenseIds,
+      seededForecastYear: seededForecast?.year ?? currentYear,
+      seededInvoiceIds
     };
 
     const [completed] = await tx
@@ -235,7 +511,10 @@ export async function installTemplate(input: InstallTemplateInput): Promise<Inst
       metadata: {
         template_slug: template.slug,
         template_version: version.version,
-        seeded_expense_categories: seededCategories.length
+        seeded_expense_categories: seededCategories.length,
+        seeded_expenses: seededExpenseIds.length,
+        seeded_forecast_year: seededForecast?.year ?? null,
+        seeded_invoices: seededInvoiceIds.length
       }
     });
 

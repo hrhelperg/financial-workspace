@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Panel, PanelHeader } from "@financial-workspace/ui";
 import { MetricCard } from "@/components/metric-card";
+import { OnboardingPanel } from "@/components/onboarding-panel";
 import { PageHeader } from "@/components/page-header";
 import { listClients } from "@/server/clients";
 import { listInvoices } from "@/server/invoices";
@@ -50,6 +51,30 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         actionLabel={t("dashboard.newInvoice")}
         actionIcon={ReceiptText}
         actionHref={localizePath("/invoices/new", locale)}
+      />
+
+      <OnboardingPanel
+        title={t("dashboard.onboardingTitle")}
+        completedTitle={t("dashboard.onboardingCompleteTitle")}
+        description={t("dashboard.onboardingDescription")}
+        progressLabel={t("dashboard.onboardingProgress", { completed: "{{completed}}", total: "{{total}}" })}
+        steps={[
+          {
+            id: "invoice",
+            label: t("dashboard.nextCreateInvoice"),
+            href: localizePath("/invoices/new?guided=invoice", locale)
+          },
+          {
+            id: "expense",
+            label: t("dashboard.nextAddExpense"),
+            href: localizePath("/expenses?guided=expense", locale)
+          },
+          {
+            id: "forecast",
+            label: t("dashboard.nextViewForecast"),
+            href: localizePath("/cashflow/forecast?guided=forecast", locale)
+          }
+        ]}
       />
 
       {showActivationState ? (

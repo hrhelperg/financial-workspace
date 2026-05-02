@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { and, eq } from "drizzle-orm";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { db, templateVersions, templates, type TemplateVersion } from "@financial-workspace/db";
 import {
   parseTemplateConfig,
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 type InstallPageProps = {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; installed?: string }>;
 };
 
 type LoadedTemplate = {
@@ -93,7 +93,7 @@ function resolveErrorKey(t: Translator, errorParam?: string): string | null {
 }
 
 export default async function InstallTemplatePage({ params, searchParams }: InstallPageProps) {
-  const [{ locale, t }, { slug }, { error }] = await Promise.all([
+  const [{ locale, t }, { slug }, { error, installed }] = await Promise.all([
     getI18n(),
     params,
     searchParams
@@ -130,6 +130,35 @@ export default async function InstallTemplatePage({ params, searchParams }: Inst
   const widgetCount = template.config.dashboard.widgets.length;
   const forecastMonths = template.config.forecast?.horizonMonths;
   const errorMessage = resolveErrorKey(t, error);
+  const isInstalled = installed === "1";
+
+  if (isInstalled) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f6f7f2] px-4 py-10 text-[#1f2933]">
+        <section className="w-full max-w-lg rounded-md border border-[#d8ded8] bg-white p-7 text-center shadow-sm">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-md bg-[#e1f3ef] text-[#0f5f59]">
+            <CheckCircle2 aria-hidden="true" className="h-6 w-6" />
+          </span>
+          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-[#0f766e]">
+            {t("templates.install.successEyebrow")}
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            {t("templates.install.successTitle")}
+          </h1>
+          <p className="mt-2 text-base font-semibold text-[#1f2933]">{template.name}</p>
+          <p className="mt-2 text-sm leading-6 text-[#58645d]">
+            {t("templates.install.successDescription", { template: template.name })}
+          </p>
+          <Link
+            href={`${localizePath("/dashboard", locale)}?installed=${encodeURIComponent(template.slug)}`}
+            className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-[#1f2933] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#11181d]"
+          >
+            {t("templates.install.openDashboardCta")}
+          </Link>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f6f7f2] px-4 py-10 text-[#1f2933]">
