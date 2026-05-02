@@ -3,6 +3,8 @@ import { ArrowLeft, Save, TrendingUp } from "lucide-react";
 import { Panel, PanelHeader } from "@financial-workspace/ui";
 import { inputClassName, labelClassName, primaryButtonClassName, secondaryButtonClassName } from "@/components/form-styles";
 import { PageHeader } from "@/components/page-header";
+import { localizePath } from "@/i18n/config";
+import { getI18n } from "@/i18n/server";
 import { formatCurrency } from "@/server/format";
 import { getCurrentWorkspaceForecast, getCurrentYear } from "@/server/forecast";
 import { saveForecastAction } from "./actions";
@@ -34,6 +36,7 @@ function yearOptions(selectedYear: number) {
 }
 
 export default async function ForecastPage({ searchParams }: ForecastPageProps) {
+  const { locale, t } = await getI18n();
   const params = await searchParams;
   const selectedYear = parseYear(params.year);
   const forecast = await getCurrentWorkspaceForecast(selectedYear);
@@ -42,20 +45,20 @@ export default async function ForecastPage({ searchParams }: ForecastPageProps) 
   return (
     <div className="space-y-6">
       <Link
-        href="/cashflow"
+        href={localizePath("/cashflow", locale)}
         className="inline-flex items-center gap-2 text-sm font-medium text-[#58645d] hover:text-[#1f2933]"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Back to cashflow
+        {t("common.back.cashflow")}
       </Link>
 
       <PageHeader
-        eyebrow="Forecast"
-        title="Yearly forecast"
-        description="Set simple yearly expectations for income, expenses, and projected net."
-        actionLabel="Cashflow"
+        eyebrow={t("cashflow.eyebrow")}
+        title={t("forecast.title")}
+        description={t("forecast.description")}
+        actionLabel={t("cashflow.title")}
         actionIcon={TrendingUp}
-        actionHref="/cashflow"
+        actionHref={localizePath("/cashflow", locale)}
       />
 
       {params.error ? (
@@ -65,15 +68,19 @@ export default async function ForecastPage({ searchParams }: ForecastPageProps) 
       ) : null}
       {params.saved ? (
         <p className="rounded-md border border-[#b8e2d8] bg-[#e1f3ef] px-3 py-2 text-sm text-[#0f5f59]">
-          Forecast saved.
+          {t("forecast.saved")}
         </p>
       ) : null}
 
       <Panel>
-        <PanelHeader title="Select year" description="Forecasts are stored per workspace and year." />
-        <form action="/cashflow/forecast" className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end" method="get">
+        <PanelHeader title={t("forecast.selectYear")} description={t("forecast.selectYearDescription")} />
+        <form
+          action={localizePath("/cashflow/forecast", locale)}
+          className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end"
+          method="get"
+        >
           <label className={labelClassName}>
-            Year
+            {t("common.labels.year")}
             <select className={`${inputClassName} sm:w-44`} defaultValue={selectedYear} name="year">
               {options.map((year) => (
                 <option key={year} value={year}>
@@ -83,23 +90,24 @@ export default async function ForecastPage({ searchParams }: ForecastPageProps) 
             </select>
           </label>
           <button className={secondaryButtonClassName} type="submit">
-            View year
+            {t("common.actions.viewYear")}
           </button>
         </form>
       </Panel>
 
       <Panel>
         <PanelHeader
-          title={`${forecast.year} forecast`}
-          description="Projected net is expected income minus expected expenses."
+          title={t("forecast.forecastTitle", { year: forecast.year })}
+          description={t("forecast.forecastDescription")}
         />
         <form action={saveForecastAction} className="mt-5 space-y-5">
+          <input name="locale" type="hidden" value={locale} />
           <input name="year" type="hidden" value={forecast.year} />
           <input name="currency" type="hidden" value={forecast.currency} />
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className={labelClassName}>
-              Expected income
+              {t("forecast.expectedIncome")}
               <input
                 className={inputClassName}
                 defaultValue={forecast.expectedIncome}
@@ -111,7 +119,7 @@ export default async function ForecastPage({ searchParams }: ForecastPageProps) 
               />
             </label>
             <label className={labelClassName}>
-              Expected expenses
+              {t("forecast.expectedExpenses")}
               <input
                 className={inputClassName}
                 defaultValue={forecast.expectedExpenses}
@@ -127,21 +135,21 @@ export default async function ForecastPage({ searchParams }: ForecastPageProps) 
           <div className="rounded-md border border-[#d8ded8] bg-[#f8faf7] p-4">
             <dl className="grid gap-4 text-sm md:grid-cols-3">
               <div>
-                <dt className="text-[#647067]">Expected income</dt>
+                <dt className="text-[#647067]">{t("forecast.expectedIncome")}</dt>
                 <dd className="mt-1 font-semibold text-[#1f2933]">
-                  {formatCurrency(forecast.expectedIncome, forecast.currency)}
+                  {formatCurrency(forecast.expectedIncome, forecast.currency, locale)}
                 </dd>
               </div>
               <div>
-                <dt className="text-[#647067]">Expected expenses</dt>
+                <dt className="text-[#647067]">{t("forecast.expectedExpenses")}</dt>
                 <dd className="mt-1 font-semibold text-[#1f2933]">
-                  {formatCurrency(forecast.expectedExpenses, forecast.currency)}
+                  {formatCurrency(forecast.expectedExpenses, forecast.currency, locale)}
                 </dd>
               </div>
               <div>
-                <dt className="text-[#647067]">Projected net</dt>
+                <dt className="text-[#647067]">{t("forecast.projectedNet")}</dt>
                 <dd className="mt-1 font-semibold text-[#1f2933]">
-                  {formatCurrency(forecast.projectedNet, forecast.currency)}
+                  {formatCurrency(forecast.projectedNet, forecast.currency, locale)}
                 </dd>
               </div>
             </dl>
@@ -149,7 +157,7 @@ export default async function ForecastPage({ searchParams }: ForecastPageProps) 
 
           <button className={primaryButtonClassName} type="submit">
             <Save className="h-4 w-4" aria-hidden="true" />
-            Save forecast
+            {t("forecast.save")}
           </button>
         </form>
       </Panel>

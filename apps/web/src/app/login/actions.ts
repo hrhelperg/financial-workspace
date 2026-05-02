@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { createTranslator } from "@/i18n/messages";
+import { defaultLocale, isLocale, localizePath } from "@/i18n/config";
 import { createSupabaseServerClient, hasSupabaseAuthConfig } from "@/server/supabase";
 
 function getRedirectPath(formData: FormData) {
@@ -8,51 +10,60 @@ function getRedirectPath(formData: FormData) {
   return next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
 }
 
-function redirectWithError(message: string, next: string) {
+function getActionLocale(formData: FormData) {
+  const locale = String(formData.get("locale") ?? "");
+  return isLocale(locale) ? locale : defaultLocale;
+}
+
+function redirectWithError(message: string, next: string, locale = defaultLocale) {
   const params = new URLSearchParams({
     error: message,
     next
   });
 
-  redirect(`/login?${params.toString()}`);
+  redirect(localizePath(`/login?${params.toString()}`, locale));
 }
 
 export async function signInWithPasswordAction(formData: FormData) {
+  const locale = getActionLocale(formData);
+  const t = createTranslator(locale);
   const next = getRedirectPath(formData);
 
   if (!hasSupabaseAuthConfig()) {
-    redirectWithError("Supabase Auth is not configured for this environment.", next);
+    redirectWithError(t("auth.authNotConfigured"), next, locale);
   }
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirectWithError("Email and password are required.", next);
+    redirectWithError(t("auth.missingCredentials"), next, locale);
   }
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirectWithError(error.message, next);
+    redirectWithError(error.message, next, locale);
   }
 
   redirect(next);
 }
 
 export async function signUpWithPasswordAction(formData: FormData) {
+  const locale = getActionLocale(formData);
+  const t = createTranslator(locale);
   const next = getRedirectPath(formData);
 
   if (!hasSupabaseAuthConfig()) {
-    redirectWithError("Supabase Auth is not configured for this environment.", next);
+    redirectWithError(t("auth.authNotConfigured"), next, locale);
   }
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirectWithError("Email and password are required.", next);
+    redirectWithError(t("auth.missingCredentials"), next, locale);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -65,7 +76,7 @@ export async function signUpWithPasswordAction(formData: FormData) {
   });
 
   if (error) {
-    redirectWithError(error.message, next);
+    redirectWithError(error.message, next, locale);
   }
 
   if (data.session) {
@@ -73,9 +84,9 @@ export async function signUpWithPasswordAction(formData: FormData) {
   }
 
   const params = new URLSearchParams({
-    message: "Check your email to confirm your account.",
+    message: t("auth.confirmEmail"),
     next
   });
 
-  redirect(`/login?${params.toString()}`);
+  redirect(localizePath(`/login?${params.toString()}`, locale));
 }

@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
 import { inputClassName, labelClassName, primaryButtonClassName } from "@/components/form-styles";
+import { useLocale, useLocalizedPath, useTranslator } from "@/i18n/client";
+import { localeHeaderName } from "@/i18n/config";
 
 type FieldErrors = Record<string, string>;
 
@@ -13,6 +15,9 @@ type ApiErrorResponse = {
 
 export function ClientForm() {
   const router = useRouter();
+  const locale = useLocale();
+  const localize = useLocalizedPath();
+  const t = useTranslator();
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -40,7 +45,7 @@ export function ClientForm() {
     try {
       const response = await fetch("/api/clients", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", [localeHeaderName]: locale },
         body: JSON.stringify(payload)
       });
 
@@ -59,14 +64,14 @@ export function ClientForm() {
         });
 
         setFieldErrors(nextFieldErrors);
-        setGeneralError(general ?? "Could not create client.");
+        setGeneralError(general ?? t("clients.createFailed"));
         return;
       }
 
-      router.push("/clients");
+      router.push(localize("/clients"));
       router.refresh();
     } catch {
-      setGeneralError("Network error. Please try again.");
+      setGeneralError(t("common.errors.network"));
     } finally {
       setSubmitting(false);
     }
@@ -76,30 +81,30 @@ export function ClientForm() {
     <form className="space-y-4" onSubmit={handleSubmit} noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={labelClassName}>
-          Client name
-          <input className={inputClassName} name="name" placeholder="Acme Ledger Co." required />
+          {t("clients.name")}
+          <input className={inputClassName} name="name" placeholder={t("clients.namePlaceholder")} required />
           {fieldErrors.name ? <span className="mt-1 block text-xs text-[#a13d3d]">{fieldErrors.name}</span> : null}
         </label>
         <label className={labelClassName}>
-          Company
-          <input className={inputClassName} name="companyName" placeholder="Acme Ledger Co." />
+          {t("clients.company")}
+          <input className={inputClassName} name="companyName" placeholder={t("clients.namePlaceholder")} />
         </label>
         <label className={labelClassName}>
-          Email
-          <input className={inputClassName} name="email" placeholder="finance@example.com" type="email" />
+          {t("common.labels.email")}
+          <input className={inputClassName} name="email" placeholder={t("clients.emailPlaceholder")} type="email" />
           {fieldErrors.email ? <span className="mt-1 block text-xs text-[#a13d3d]">{fieldErrors.email}</span> : null}
         </label>
         <label className={labelClassName}>
-          Phone
-          <input className={inputClassName} name="phone" placeholder="+1 555 0100" />
+          {t("clients.phone")}
+          <input className={inputClassName} name="phone" placeholder={t("clients.phonePlaceholder")} />
         </label>
       </div>
       <label className={labelClassName}>
-        Notes
+        {t("common.labels.notes")}
         <textarea
           className={`${inputClassName} min-h-24 resize-y`}
           name="notes"
-          placeholder="Billing preferences or operating context"
+          placeholder={t("clients.notesPlaceholder")}
         />
       </label>
       {generalError ? (
@@ -110,7 +115,7 @@ export function ClientForm() {
       <div className="flex items-center gap-3">
         <button className={primaryButtonClassName} disabled={submitting} type="submit">
           <Plus className="h-4 w-4" aria-hidden="true" />
-          {submitting ? "Creating…" : "Create client"}
+          {submitting ? t("clients.creating") : t("clients.create")}
         </button>
       </div>
     </form>

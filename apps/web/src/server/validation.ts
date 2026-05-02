@@ -1,5 +1,7 @@
 import "server-only";
 import { invoiceDirectionValues, invoiceStatusValues } from "@financial-workspace/db";
+import { defaultLocale } from "@/i18n/config";
+import { createTranslator, type Translator } from "@/i18n/messages";
 
 export type ValidationError = { field: string; message: string };
 
@@ -30,6 +32,7 @@ function trimOrEmpty(value: unknown): string {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const SERVER_DERIVED_INVOICE_FIELDS = ["fiscalYear", "fiscal_year", "storagePath", "storage_path"] as const;
+const defaultTranslator = createTranslator(defaultLocale);
 
 function isValidIsoDate(value: string): boolean {
   if (!ISO_DATE.test(value)) {
@@ -54,25 +57,28 @@ export type CreateClientPayload = {
   notes: string | null;
 };
 
-export function parseCreateClientPayload(input: unknown): ValidationResult<CreateClientPayload> {
+export function parseCreateClientPayload(
+  input: unknown,
+  t: Translator = defaultTranslator
+): ValidationResult<CreateClientPayload> {
   const errors: ValidationError[] = [];
 
   if (!input || typeof input !== "object") {
-    return { success: false, errors: [{ field: "_", message: "Body must be an object." }] };
+    return { success: false, errors: [{ field: "_", message: t("validation.bodyObject") }] };
   }
 
   const body = input as Record<string, unknown>;
   const name = trimOrEmpty(body.name);
 
   if (name.length === 0) {
-    errors.push({ field: "name", message: "Client name is required." });
+    errors.push({ field: "name", message: t("validation.clientNameRequired") });
   } else if (name.length > 255) {
-    errors.push({ field: "name", message: "Client name must be 255 characters or fewer." });
+    errors.push({ field: "name", message: t("validation.clientNameMax") });
   }
 
   const email = trimOrNull(body.email);
   if (email && !email.includes("@")) {
-    errors.push({ field: "email", message: "Email must be a valid address." });
+    errors.push({ field: "email", message: t("validation.emailInvalid") });
   }
 
   if (errors.length > 0) {
@@ -138,31 +144,34 @@ function toFiniteNumber(value: unknown): number | null {
   return null;
 }
 
-export function parseCreateInvoicePayload(input: unknown): ValidationResult<CreateInvoicePayload> {
+export function parseCreateInvoicePayload(
+  input: unknown,
+  t: Translator = defaultTranslator
+): ValidationResult<CreateInvoicePayload> {
   const errors: ValidationError[] = [];
 
   if (!input || typeof input !== "object") {
-    return { success: false, errors: [{ field: "_", message: "Body must be an object." }] };
+    return { success: false, errors: [{ field: "_", message: t("validation.bodyObject") }] };
   }
 
   const body = input as Record<string, unknown>;
 
   SERVER_DERIVED_INVOICE_FIELDS.forEach((field) => {
     if (field in body) {
-      errors.push({ field, message: "Fiscal year and storage path are generated server-side." });
+      errors.push({ field, message: t("validation.serverDerivedInvoiceFields") });
     }
   });
 
   const clientId = trimOrEmpty(body.clientId);
   if (clientId.length === 0) {
-    errors.push({ field: "clientId", message: "Client is required." });
+    errors.push({ field: "clientId", message: t("validation.clientRequired") });
   }
 
   const status = trimOrEmpty(body.status);
   if (!invoiceStatusValues.includes(status as (typeof invoiceStatusValues)[number])) {
     errors.push({
       field: "status",
-      message: `Status must be one of: ${invoiceStatusValues.join(", ")}.`
+      message: t("validation.statusRequired", { values: invoiceStatusValues.join(", ") })
     });
   }
 
@@ -170,18 +179,18 @@ export function parseCreateInvoicePayload(input: unknown): ValidationResult<Crea
   if (!invoiceDirectionValues.includes(direction as (typeof invoiceDirectionValues)[number])) {
     errors.push({
       field: "direction",
-      message: `Direction must be one of: ${invoiceDirectionValues.join(", ")}.`
+      message: t("validation.directionRequired", { values: invoiceDirectionValues.join(", ") })
     });
   }
 
   const issueDate = trimOrEmpty(body.issueDate);
   if (!isValidIsoDate(issueDate)) {
-    errors.push({ field: "issueDate", message: "Issue date must be a valid YYYY-MM-DD date." });
+    errors.push({ field: "issueDate", message: t("validation.issueDateInvalid") });
   }
 
   const dueDate = trimOrEmpty(body.dueDate);
   if (!isValidIsoDate(dueDate)) {
-    errors.push({ field: "dueDate", message: "Due date must be a valid YYYY-MM-DD date." });
+    errors.push({ field: "dueDate", message: t("validation.dueDateInvalid") });
   }
 
   const rawItems = Array.isArray(body.items) ? body.items : [];
@@ -204,20 +213,20 @@ export function parseCreateInvoicePayload(input: unknown): ValidationResult<Crea
     const taxRate = toFiniteNumber(item.taxRate) ?? 0;
 
     if (quantity < 0) {
-      errors.push({ field: `items.${index}.quantity`, message: "Quantity cannot be negative." });
+      errors.push({ field: `items.${index}.quantity`, message: t("validation.quantityNegative") });
     }
     if (unitPrice < 0) {
-      errors.push({ field: `items.${index}.unitPrice`, message: "Unit price cannot be negative." });
+      errors.push({ field: `items.${index}.unitPrice`, message: t("validation.unitPriceNegative") });
     }
     if (taxRate < 0) {
-      errors.push({ field: `items.${index}.taxRate`, message: "Tax rate cannot be negative." });
+      errors.push({ field: `items.${index}.taxRate`, message: t("validation.taxRateNegative") });
     }
 
     cleanedItems.push({ description, quantity, unitPrice, taxRate });
   });
 
   if (cleanedItems.length === 0) {
-    errors.push({ field: "items", message: "At least one invoice item with a description is required." });
+    errors.push({ field: "items", message: t("validation.itemsRequired") });
   }
 
   if (errors.length > 0) {
@@ -243,11 +252,14 @@ export function parseCreateInvoicePayload(input: unknown): ValidationResult<Crea
   };
 }
 
-export function parseUpdateInvoicePayload(input: unknown): ValidationResult<UpdateInvoicePayload> {
+export function parseUpdateInvoicePayload(
+  input: unknown,
+  t: Translator = defaultTranslator
+): ValidationResult<UpdateInvoicePayload> {
   const errors: ValidationError[] = [];
 
   if (!input || typeof input !== "object") {
-    return { success: false, errors: [{ field: "_", message: "Body must be an object." }] };
+    return { success: false, errors: [{ field: "_", message: t("validation.bodyObject") }] };
   }
 
   const body = input as Record<string, unknown>;
@@ -256,14 +268,14 @@ export function parseUpdateInvoicePayload(input: unknown): ValidationResult<Upda
 
   SERVER_DERIVED_INVOICE_FIELDS.forEach((field) => {
     if (field in body) {
-      errors.push({ field, message: "Fiscal year and storage path are generated server-side." });
+      errors.push({ field, message: t("validation.serverDerivedInvoiceFields") });
     }
   });
 
   if ("clientId" in body || "client_id" in body) {
     const clientId = trimOrEmpty(body.clientId ?? body.client_id);
     if (clientId.length === 0) {
-      errors.push({ field: "clientId", message: "Client is required." });
+      errors.push({ field: "clientId", message: t("validation.clientRequired") });
     } else {
       data.clientId = clientId;
     }
@@ -278,7 +290,7 @@ export function parseUpdateInvoicePayload(input: unknown): ValidationResult<Upda
     if (!invoiceDirectionValues.includes(direction as (typeof invoiceDirectionValues)[number])) {
       errors.push({
         field: "direction",
-        message: `Direction must be one of: ${invoiceDirectionValues.join(", ")}.`
+        message: t("validation.directionRequired", { values: invoiceDirectionValues.join(", ") })
       });
     } else {
       data.direction = direction as (typeof invoiceDirectionValues)[number];
@@ -290,7 +302,7 @@ export function parseUpdateInvoicePayload(input: unknown): ValidationResult<Upda
     if (!invoiceStatusValues.includes(status as (typeof invoiceStatusValues)[number])) {
       errors.push({
         field: "status",
-        message: `Status must be one of: ${invoiceStatusValues.join(", ")}.`
+        message: t("validation.statusRequired", { values: invoiceStatusValues.join(", ") })
       });
     } else {
       data.status = status as (typeof invoiceStatusValues)[number];
@@ -300,7 +312,7 @@ export function parseUpdateInvoicePayload(input: unknown): ValidationResult<Upda
   if ("issueDate" in body || "issue_date" in body) {
     const issueDate = trimOrEmpty(body.issueDate ?? body.issue_date);
     if (!isValidIsoDate(issueDate)) {
-      errors.push({ field: "issueDate", message: "Issue date must be a valid YYYY-MM-DD date." });
+      errors.push({ field: "issueDate", message: t("validation.issueDateInvalid") });
     } else {
       data.issueDate = issueDate;
     }
@@ -309,7 +321,7 @@ export function parseUpdateInvoicePayload(input: unknown): ValidationResult<Upda
   if ("dueDate" in body || "due_date" in body) {
     const dueDate = trimOrEmpty(body.dueDate ?? body.due_date);
     if (!isValidIsoDate(dueDate)) {
-      errors.push({ field: "dueDate", message: "Due date must be a valid YYYY-MM-DD date." });
+      errors.push({ field: "dueDate", message: t("validation.dueDateInvalid") });
     } else {
       data.dueDate = dueDate;
     }
@@ -348,20 +360,20 @@ export function parseUpdateInvoicePayload(input: unknown): ValidationResult<Upda
       const taxRate = toFiniteNumber(item.taxRate) ?? 0;
 
       if (quantity < 0) {
-        errors.push({ field: `items.${index}.quantity`, message: "Quantity cannot be negative." });
+        errors.push({ field: `items.${index}.quantity`, message: t("validation.quantityNegative") });
       }
       if (unitPrice < 0) {
-        errors.push({ field: `items.${index}.unitPrice`, message: "Unit price cannot be negative." });
+        errors.push({ field: `items.${index}.unitPrice`, message: t("validation.unitPriceNegative") });
       }
       if (taxRate < 0) {
-        errors.push({ field: `items.${index}.taxRate`, message: "Tax rate cannot be negative." });
+        errors.push({ field: `items.${index}.taxRate`, message: t("validation.taxRateNegative") });
       }
 
       cleanedItems.push({ description, quantity, unitPrice, taxRate });
     });
 
     if (cleanedItems.length === 0) {
-      errors.push({ field: "items", message: "At least one invoice item with a description is required." });
+      errors.push({ field: "items", message: t("validation.itemsRequired") });
     } else {
       data.items = cleanedItems;
     }

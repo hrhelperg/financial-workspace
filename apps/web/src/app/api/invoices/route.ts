@@ -1,32 +1,37 @@
 import { NextResponse } from "next/server";
+import { getApiTranslator } from "@/server/api-i18n";
+import type { Translator } from "@/i18n/messages";
 import { createInvoice, isIdempotencyConflictError, listInvoices } from "@/server/invoices";
 import { isAuthenticationError, isAuthorizationError } from "@/server/workspace";
 import { parseCreateInvoicePayload } from "@/server/validation";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const t = getApiTranslator(request);
+
   try {
     const data = await listInvoices();
     return NextResponse.json({ data });
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error, t);
   }
 }
 
 export async function POST(request: Request) {
+  const t = getApiTranslator(request);
   let payload: unknown;
 
   try {
     payload = await request.json();
   } catch {
     return NextResponse.json(
-      { errors: [{ field: "_", message: "Invalid JSON body." }] },
+      { errors: [{ field: "_", message: t("common.errors.invalidJson") }] },
       { status: 400 }
     );
   }
 
-  const parsed = parseCreateInvoicePayload(payload);
+  const parsed = parseCreateInvoicePayload(payload, t);
   if (!parsed.success) {
     return NextResponse.json({ errors: parsed.errors }, { status: 400 });
   }
@@ -38,26 +43,26 @@ export async function POST(request: Request) {
     const status = created.replayed ? 200 : 201;
     return NextResponse.json({ data: created }, { status });
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error, t);
   }
 }
 
-function handleApiError(error: unknown) {
+function handleApiError(error: unknown, t: Translator) {
   if (isAuthenticationError(error)) {
-    return NextResponse.json({ errors: [{ field: "_", message: "Authentication required." }] }, { status: 401 });
+    return NextResponse.json({ errors: [{ field: "_", message: t("common.errors.authenticationRequired") }] }, { status: 401 });
   }
 
   if (isAuthorizationError(error)) {
-    return NextResponse.json({ errors: [{ field: "_", message: "Insufficient workspace role." }] }, { status: 403 });
+    return NextResponse.json({ errors: [{ field: "_", message: t("common.errors.insufficientRole") }] }, { status: 403 });
   }
 
   if (isIdempotencyConflictError(error)) {
     return NextResponse.json(
-      { errors: [{ field: "_", message: "Idempotency-Key already used with a different request body." }] },
+      { errors: [{ field: "_", message: t("common.errors.idempotencyConflict") }] },
       { status: 409 }
     );
   }
 
-  const message = error instanceof Error ? error.message : "Failed to create invoice.";
+  const message = error instanceof Error ? error.message : t("invoices.createFailed");
   return NextResponse.json({ errors: [{ field: "_", message }] }, { status: 400 });
 }

@@ -1,6 +1,8 @@
 import { MailPlus } from "lucide-react";
 import { Panel, PanelHeader } from "@financial-workspace/ui";
+import { inputClassName, primaryButtonClassName } from "@/components/form-styles";
 import { PageHeader } from "@/components/page-header";
+import { getI18n } from "@/i18n/server";
 import { createTeamInvitationAction } from "../actions";
 import { requireWorkspaceRole } from "@/server/workspace";
 
@@ -14,20 +16,21 @@ type InvitePageProps = {
 export const dynamic = "force-dynamic";
 
 export default async function InviteTeamMemberPage({ searchParams }: InvitePageProps) {
+  const { locale, t } = await getI18n();
   const params = await searchParams;
   await requireWorkspaceRole(["admin"]);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Settings"
-        title="Invite teammate"
-        description="Add an owner, operator, or advisor to the current workspace."
+        eyebrow={t("settings.team.eyebrow")}
+        title={t("settings.invite.title")}
+        description={t("settings.invite.description")}
         actionIcon={MailPlus}
       />
 
       <Panel>
-        <PanelHeader title="Invitation" description="The teammate will receive workspace access after accepting." />
+        <PanelHeader title={t("settings.invite.panelTitle")} description={t("settings.invite.panelDescription")} />
 
         {params.error ? (
           <div className="mt-5 rounded-md border border-[#ffd6de] bg-[#fff5f7] p-4 text-sm text-[#9f1239]">
@@ -37,37 +40,38 @@ export default async function InviteTeamMemberPage({ searchParams }: InvitePageP
 
         {params.inviteUrl ? (
           <div className="mt-5 rounded-md border border-[#d8ded8] bg-[#f8faf7] p-4">
-            <p className="text-sm font-semibold text-[#1f2933]">Invite created</p>
+            <p className="text-sm font-semibold text-[#1f2933]">{t("settings.invite.created")}</p>
             <p className="mt-2 break-all text-sm leading-6 text-[#58645d]">{params.inviteUrl}</p>
           </div>
         ) : null}
 
         <form action={createTeamInvitationAction} className="mt-6 grid gap-4">
+          <input type="hidden" name="locale" value={locale} />
           <label className="block">
-            <span className="text-sm font-medium text-[#58645d]">Email</span>
+            <span className="text-sm font-medium text-[#58645d]">{t("common.labels.email")}</span>
             <input
               required
               name="email"
               type="email"
-              className="mt-2 w-full rounded-md border border-[#d8ded8] bg-white px-3 py-2 text-sm outline-none focus:border-[#0f766e]"
-              placeholder="teammate@example.com"
+              className={inputClassName}
+              placeholder={t("settings.invite.placeholder")}
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium text-[#58645d]">Role</span>
+            <span className="text-sm font-medium text-[#58645d]">{t("common.labels.role")}</span>
             <select
               name="role"
               defaultValue="member"
-              className="mt-2 w-full rounded-md border border-[#d8ded8] bg-white px-3 py-2 text-sm outline-none focus:border-[#0f766e]"
+              className={inputClassName}
             >
-              <option value="admin">Admin</option>
-              <option value="member">Member</option>
-              <option value="viewer">Viewer</option>
+              <option value="admin">{t("common.roles.admin")}</option>
+              <option value="member">{t("common.roles.member")}</option>
+              <option value="viewer">{t("common.roles.viewer")}</option>
             </select>
           </label>
-          <button className="inline-flex w-fit items-center justify-center gap-2 rounded-md bg-[#1f2933] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#11181d]">
+          <button className={primaryButtonClassName}>
             <MailPlus className="h-4 w-4" aria-hidden="true" />
-            Create invite
+            {t("settings.invite.create")}
           </button>
         </form>
       </Panel>
