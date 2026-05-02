@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { signInWithPasswordAction, signUpWithPasswordAction } from "./actions";
+import { SupabaseAuthInitializer } from "@/components/supabase-auth-initializer";
 import { getCurrentUser } from "@/server/workspace";
 import { hasSupabaseAuthConfig } from "@/server/supabase";
 
@@ -25,6 +26,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f6f7f2] px-4 py-10 text-[#1f2933]">
+      <SupabaseAuthInitializer />
       <section className="w-full max-w-md rounded-md border border-[#d8ded8] bg-white p-6 shadow-sm">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0f766e]">Financial Workspace</p>
