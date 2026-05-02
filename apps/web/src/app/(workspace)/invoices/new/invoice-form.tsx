@@ -10,22 +10,11 @@ import {
   primaryButtonClassName,
   secondaryButtonClassName
 } from "@/components/form-styles";
+import { localeHeaderName } from "@/i18n/config";
+import { useLocale, useLocalizedPath, useTranslator } from "@/i18n/client";
 
 type Status = (typeof invoiceStatusValues)[number];
 type Direction = (typeof invoiceDirectionValues)[number];
-
-const statusLabels: Record<Status, string> = {
-  cancelled: "Cancelled",
-  draft: "Draft",
-  overdue: "Overdue",
-  paid: "Paid",
-  sent: "Sent"
-};
-
-const directionLabels: Record<Direction, string> = {
-  incoming: "Incoming / Sales invoice",
-  outgoing: "Outgoing / Purchase invoice"
-};
 
 type LineItem = {
   id: string;
@@ -58,8 +47,8 @@ function toNumber(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function formatMoney(amount: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
+function formatMoney(amount: number, locale: string, currency = "USD") {
+  return new Intl.NumberFormat(locale, {
     currency,
     maximumFractionDigits: 2,
     style: "currency"
@@ -78,6 +67,9 @@ function addDaysIso(days: number): string {
 
 export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
   const router = useRouter();
+  const locale = useLocale();
+  const localize = useLocalizedPath();
+  const t = useTranslator();
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -153,7 +145,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
     try {
       const response = await fetch("/api/invoices", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", [localeHeaderName]: locale },
         body: JSON.stringify(payload)
       });
 
@@ -172,14 +164,14 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
         });
 
         setFieldErrors(nextFieldErrors);
-        setGeneralError(general ?? "Could not create invoice.");
+        setGeneralError(general ?? t("invoices.createFailed"));
         return;
       }
 
-      router.push("/invoices");
+      router.push(localize("/invoices"));
       router.refresh();
     } catch {
-      setGeneralError("Network error. Please try again.");
+      setGeneralError(t("common.errors.network"));
     } finally {
       setSubmitting(false);
     }
@@ -188,7 +180,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
   if (clients.length === 0) {
     return (
       <div className="rounded-md border border-[#d8ded8] bg-[#f8faf7] p-5 text-sm text-[#58645d]">
-        Create a client first before issuing an invoice.
+        {t("invoices.createClientFirst")}
       </div>
     );
   }
@@ -197,15 +189,15 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
     <form className="space-y-5" onSubmit={handleSubmit} noValidate>
       <div className="grid gap-4 md:grid-cols-3">
         <label className={labelClassName}>
-          Invoice number
+          {t("invoices.invoiceNumber")}
           <input
             className={inputClassName}
             name="invoiceNumber"
-            placeholder="Auto-generated if empty"
+            placeholder={t("invoices.invoiceNumberPlaceholder")}
           />
         </label>
         <label className={labelClassName}>
-          Client / supplier
+          {t("invoices.clientSupplier")}
           <select className={inputClassName} name="clientId" required defaultValue={clients[0].id}>
             {clients.map((client) => (
               <option key={client.id} value={client.id}>
@@ -218,11 +210,11 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
           ) : null}
         </label>
         <label className={labelClassName}>
-          Direction
+          {t("common.labels.direction")}
           <select className={inputClassName} name="direction" required defaultValue="incoming">
             {invoiceDirectionValues.map((direction) => (
               <option key={direction} value={direction}>
-                {directionLabels[direction]}
+                {direction === "incoming" ? t("invoices.incomingLong") : t("invoices.outgoingLong")}
               </option>
             ))}
           </select>
@@ -231,45 +223,45 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
           ) : null}
         </label>
         <label className={labelClassName}>
-          Status
+          {t("common.labels.status")}
           <select className={inputClassName} name="status" required defaultValue="draft">
             {invoiceStatusValues.map((status) => (
               <option key={status} value={status}>
-                {statusLabels[status]}
+                {t(`invoices.status.${status}`)}
               </option>
             ))}
           </select>
         </label>
         <label className={labelClassName}>
-          Issue date
+          {t("invoices.issueDate")}
           <input className={inputClassName} defaultValue={todayIso()} name="issueDate" required type="date" />
           {fieldErrors.issueDate ? (
             <span className="mt-1 block text-xs text-[#a13d3d]">{fieldErrors.issueDate}</span>
           ) : null}
         </label>
         <label className={labelClassName}>
-          Due date
+          {t("invoices.dueDate")}
           <input className={inputClassName} defaultValue={addDaysIso(14)} name="dueDate" required type="date" />
           {fieldErrors.dueDate ? (
             <span className="mt-1 block text-xs text-[#a13d3d]">{fieldErrors.dueDate}</span>
           ) : null}
         </label>
         <label className={labelClassName}>
-          Terms
+          {t("invoices.terms")}
           <input className={inputClassName} defaultValue="Net 14" name="terms" />
         </label>
       </div>
 
       <div>
         <div className="mb-3 flex items-center justify-between gap-4">
-          <h2 className="text-sm font-semibold text-[#1f2933]">Invoice items</h2>
+          <h2 className="text-sm font-semibold text-[#1f2933]">{t("invoices.itemsTitle")}</h2>
           <button
             className={secondaryButtonClassName}
             onClick={() => setLineItems((current) => [...current, blankLineItem()])}
             type="button"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
-            Add item
+            {t("invoices.addItem")}
           </button>
         </div>
         <div className="space-y-3">
@@ -279,16 +271,16 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
               className="grid gap-3 rounded-md border border-[#edf1ec] bg-[#fbfcfa] p-3 lg:grid-cols-[1fr_0.28fr_0.34fr_0.28fr_auto]"
             >
               <label className={labelClassName}>
-                Description
+                {t("invoices.description")}
                 <input
                   className={inputClassName}
                   onChange={(event) => updateLineItem(item.id, "description", event.target.value)}
-                  placeholder="Consulting, design, or operations work"
+                  placeholder={t("invoices.descriptionPlaceholder")}
                   value={item.description}
                 />
               </label>
               <label className={labelClassName}>
-                Qty
+                {t("invoices.quantity")}
                 <input
                   className={inputClassName}
                   min="0"
@@ -299,7 +291,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
                 />
               </label>
               <label className={labelClassName}>
-                Unit price
+                {t("invoices.unitPrice")}
                 <input
                   className={inputClassName}
                   min="0"
@@ -310,7 +302,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
                 />
               </label>
               <label className={labelClassName}>
-                Tax %
+                {t("invoices.tax")}
                 <input
                   className={inputClassName}
                   min="0"
@@ -323,7 +315,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
               <button
                 className="mt-7 flex h-10 w-10 items-center justify-center rounded-md border border-[#d8ded8] bg-white text-[#58645d] transition-colors hover:bg-[#ffe7e7] hover:text-[#a13d3d]"
                 onClick={() => removeLineItem(item.id)}
-                title="Remove item"
+                title={t("invoices.removeItem")}
                 type="button"
               >
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -335,27 +327,27 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
 
       <div className="grid gap-4 md:grid-cols-[1fr_0.45fr]">
         <label className={labelClassName}>
-          Notes
+          {t("common.labels.notes")}
           <textarea
             className={`${inputClassName} min-h-24 resize-y`}
             name="notes"
-            placeholder="Payment details or reminder context"
+            placeholder={t("invoices.notesPlaceholder")}
           />
         </label>
         <div className="rounded-md border border-[#d8ded8] bg-[#f8faf7] p-4">
           <input type="hidden" name="currency" value="USD" />
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between gap-3">
-              <dt className="text-[#647067]">Subtotal</dt>
-              <dd className="font-semibold text-[#1f2933]">{formatMoney(totals.subtotal)}</dd>
+              <dt className="text-[#647067]">{t("invoices.subtotal")}</dt>
+              <dd className="font-semibold text-[#1f2933]">{formatMoney(totals.subtotal, locale)}</dd>
             </div>
             <div className="flex justify-between gap-3">
-              <dt className="text-[#647067]">Tax</dt>
-              <dd className="font-semibold text-[#1f2933]">{formatMoney(totals.taxTotal)}</dd>
+              <dt className="text-[#647067]">{t("invoices.taxTotal")}</dt>
+              <dd className="font-semibold text-[#1f2933]">{formatMoney(totals.taxTotal, locale)}</dd>
             </div>
             <div className="flex justify-between gap-3 border-t border-[#d8ded8] pt-3">
-              <dt className="font-semibold text-[#1f2933]">Total</dt>
-              <dd className="font-semibold text-[#1f2933]">{formatMoney(totals.total)}</dd>
+              <dt className="font-semibold text-[#1f2933]">{t("common.labels.total")}</dt>
+              <dd className="font-semibold text-[#1f2933]">{formatMoney(totals.total, locale)}</dd>
             </div>
           </dl>
         </div>
@@ -370,7 +362,7 @@ export function InvoiceForm({ clients }: { clients: ClientOption[] }) {
       <div className="flex items-center gap-3">
         <button className={primaryButtonClassName} disabled={submitting} type="submit">
           <ReceiptText className="h-4 w-4" aria-hidden="true" />
-          {submitting ? "Creating…" : "Create invoice"}
+          {submitting ? t("invoices.creating") : t("invoices.create")}
         </button>
       </div>
     </form>

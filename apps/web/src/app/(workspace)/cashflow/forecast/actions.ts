@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { createTranslator } from "@/i18n/messages";
+import { defaultLocale, isLocale, localizePath } from "@/i18n/config";
 import { getCurrentYear, upsertCurrentWorkspaceForecast } from "@/server/forecast";
 
 function toNumber(value: FormDataEntryValue | null) {
@@ -10,11 +12,15 @@ function toNumber(value: FormDataEntryValue | null) {
 }
 
 export async function saveForecastAction(formData: FormData) {
+  const rawLocale = String(formData.get("locale") ?? "");
+  const locale = isLocale(rawLocale) ? rawLocale : defaultLocale;
+  const t = createTranslator(locale);
   const year = toNumber(formData.get("year"));
   const expectedIncome = toNumber(formData.get("expectedIncome"));
   const expectedExpenses = toNumber(formData.get("expectedExpenses"));
   const currency = String(formData.get("currency") ?? "USD");
-  let redirectTo = `/cashflow/forecast?year=${Number.isInteger(year) ? year : getCurrentYear()}`;
+  const fallbackYear = Number.isInteger(year) ? year : getCurrentYear();
+  let redirectTo = localizePath(`/cashflow/forecast?year=${fallbackYear}`, locale);
 
   try {
     await upsertCurrentWorkspaceForecast({
@@ -25,9 +31,9 @@ export async function saveForecastAction(formData: FormData) {
     });
     revalidatePath("/cashflow/forecast");
     revalidatePath("/dashboard");
-    redirectTo = `/cashflow/forecast?year=${year}&saved=1`;
+    redirectTo = localizePath(`/cashflow/forecast?year=${year}&saved=1`, locale);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to save forecast.";
+    const message = error instanceof Error ? error.message : t("forecast.saveFailed");
     redirectTo = `${redirectTo}&error=${encodeURIComponent(message)}`;
   }
 

@@ -6,10 +6,13 @@ import { listClients } from "@/server/clients";
 import { listInvoices } from "@/server/invoices";
 import { getDashboardMetrics } from "@/server/dashboard";
 import { formatCurrency, formatDate } from "@/server/format";
+import { localizePath } from "@/i18n/config";
+import { getI18n } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const { locale, t } = await getI18n();
   const [metrics, recentInvoices, clients] = await Promise.all([
     getDashboardMetrics(),
     listInvoices(),
@@ -21,40 +24,40 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Operations"
-        title="Financial control center"
-        description="Receivables, clients, and invoice activity at a glance."
-        actionLabel="New invoice"
+        eyebrow={t("dashboard.eyebrow")}
+        title={t("dashboard.title")}
+        description={t("dashboard.description")}
+        actionLabel={t("dashboard.newInvoice")}
         actionIcon={ReceiptText}
-        actionHref="/invoices/new"
+        actionHref={localizePath("/invoices/new", locale)}
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          title="Clients"
+          title={t("dashboard.clientsTitle")}
           value={String(metrics.totalClients)}
-          note="Active workspace relationships"
+          note={t("dashboard.clientsNote")}
           icon={BriefcaseBusiness}
           tone="green"
         />
         <MetricCard
-          title="Total invoices"
+          title={t("dashboard.totalInvoices")}
           value={String(metrics.totalInvoices)}
-          note="Across all statuses"
+          note={t("dashboard.totalInvoicesNote")}
           icon={ReceiptText}
           tone="blue"
         />
         <MetricCard
-          title="Unpaid invoices"
+          title={t("dashboard.unpaidInvoices")}
           value={String(metrics.unpaidInvoices)}
-          note="Drafts, sent, and overdue"
+          note={t("dashboard.unpaidInvoicesNote")}
           icon={Timer}
           tone="amber"
         />
         <MetricCard
-          title="Total revenue"
-          value={formatCurrency(metrics.totalRevenue)}
-          note="Sum of paid amounts"
+          title={t("dashboard.totalRevenue")}
+          value={formatCurrency(metrics.totalRevenue, "USD", locale)}
+          note={t("dashboard.totalRevenueNote")}
           icon={DollarSign}
           tone="green"
         />
@@ -62,11 +65,11 @@ export default async function DashboardPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
         <Panel>
-          <PanelHeader title="Recent invoices" description="Latest activity in this workspace." />
+          <PanelHeader title={t("dashboard.recentInvoices")} description={t("dashboard.recentInvoicesDescription")} />
           <div className="mt-5 divide-y divide-[#edf1ec]">
             {recent.length === 0 ? (
               <p className="py-6 text-center text-sm text-[#58645d]">
-                No invoices yet. Create one from the invoices page.
+                {t("dashboard.noInvoices")}
               </p>
             ) : (
               recent.map((invoice) => (
@@ -76,11 +79,14 @@ export default async function DashboardPage() {
                       {invoice.invoiceNumber} · {invoice.clientName}
                     </p>
                     <p className="mt-1 text-sm text-[#647067]">
-                      Due {formatDate(invoice.dueDate)} · {invoice.status}
+                      {t("dashboard.dueLine", {
+                        date: formatDate(invoice.dueDate, locale),
+                        status: t(`invoices.status.${invoice.status}`)
+                      })}
                     </p>
                   </div>
                   <span className="text-sm font-semibold text-[#1f2933]">
-                    {formatCurrency(invoice.totalAmount, invoice.currency)}
+                    {formatCurrency(invoice.totalAmount, invoice.currency, locale)}
                   </span>
                 </div>
               ))
@@ -90,14 +96,14 @@ export default async function DashboardPage() {
 
         <div className="space-y-6">
           <Panel>
-            <PanelHeader title="Cashflow base" description="Unpaid incoming minus unpaid outgoing." />
+            <PanelHeader title={t("dashboard.cashflowTitle")} description={t("dashboard.cashflowDescription")} />
             <div className="mt-5 flex items-start justify-between gap-4">
               <div>
                 <p className="text-3xl font-semibold tracking-normal text-[#1f2933]">
-                  {formatCurrency(metrics.projectedBalance)}
+                  {formatCurrency(metrics.projectedBalance, "USD", locale)}
                 </p>
                 <p className="mt-2 text-sm text-[#647067]">
-                  Projected balance from unpaid invoices.
+                  {t("dashboard.projectedBalanceNote")}
                 </p>
               </div>
               <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#fff0cc] text-[#8a5a00]">
@@ -106,29 +112,39 @@ export default async function DashboardPage() {
             </div>
             <dl className="mt-5 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-[#647067]">Incoming unpaid</dt>
-                <dd className="font-semibold text-[#1f2933]">{formatCurrency(metrics.totalIncomingUnpaid)}</dd>
+                <dt className="text-[#647067]">{t("dashboard.incomingUnpaid")}</dt>
+                <dd className="font-semibold text-[#1f2933]">
+                  {formatCurrency(metrics.totalIncomingUnpaid, "USD", locale)}
+                </dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-[#647067]">Outgoing unpaid</dt>
-                <dd className="font-semibold text-[#1f2933]">{formatCurrency(metrics.totalOutgoingUnpaid)}</dd>
+                <dt className="text-[#647067]">{t("dashboard.outgoingUnpaid")}</dt>
+                <dd className="font-semibold text-[#1f2933]">
+                  {formatCurrency(metrics.totalOutgoingUnpaid, "USD", locale)}
+                </dd>
               </div>
             </dl>
             <div className="mt-6 rounded-md border border-[#edf1ec] bg-[#fbfcfa] p-4 text-sm text-[#58645d]">
               {clients.length === 0
-                ? "Add your first client to start invoicing."
-                : `Workspace has ${clients.length} client${clients.length === 1 ? "" : "s"}.`}
+                ? t("dashboard.addFirstClient")
+                : t("dashboard.workspaceClientCount", {
+                    count: clients.length,
+                    plural: clients.length === 1 ? "" : "s"
+                  })}
             </div>
           </Panel>
 
           <Panel>
-            <PanelHeader title={`${metrics.forecastYear} forecast`} description="Expected yearly net position." />
+            <PanelHeader
+              title={t("dashboard.forecastTitle", { year: metrics.forecastYear })}
+              description={t("dashboard.forecastDescription")}
+            />
             <div className="mt-5 flex items-start justify-between gap-4">
               <div>
                 <p className="text-3xl font-semibold tracking-normal text-[#1f2933]">
-                  {formatCurrency(metrics.forecastProjectedNet, metrics.forecastCurrency)}
+                  {formatCurrency(metrics.forecastProjectedNet, metrics.forecastCurrency, locale)}
                 </p>
-                <p className="mt-2 text-sm text-[#647067]">Expected income minus expected expenses.</p>
+                <p className="mt-2 text-sm text-[#647067]">{t("dashboard.forecastNote")}</p>
               </div>
               <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#e7efff] text-[#2455a4]">
                 <CalendarDays className="h-5 w-5" aria-hidden="true" />
@@ -136,15 +152,15 @@ export default async function DashboardPage() {
             </div>
             <dl className="mt-5 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-[#647067]">Expected income</dt>
+                <dt className="text-[#647067]">{t("dashboard.expectedIncome")}</dt>
                 <dd className="font-semibold text-[#1f2933]">
-                  {formatCurrency(metrics.expectedIncome, metrics.forecastCurrency)}
+                  {formatCurrency(metrics.expectedIncome, metrics.forecastCurrency, locale)}
                 </dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-[#647067]">Expected expenses</dt>
+                <dt className="text-[#647067]">{t("dashboard.expectedExpenses")}</dt>
                 <dd className="font-semibold text-[#1f2933]">
-                  {formatCurrency(metrics.expectedExpenses, metrics.forecastCurrency)}
+                  {formatCurrency(metrics.expectedExpenses, metrics.forecastCurrency, locale)}
                 </dd>
               </div>
             </dl>
