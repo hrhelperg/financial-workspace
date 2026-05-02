@@ -1,5 +1,4 @@
-const baseUrl = "https://www.cashworkspace.com";
-const publicPaths = ["/", "/fr", "/es", "/de", "/pt", "/ru"] as const;
+import { CANONICAL_ORIGIN, publicSitemapPaths } from "@/lib/public-seo-pages";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,9 +14,9 @@ function escapeXml(value: string) {
 
 export function GET() {
   const lastmod = new Date().toISOString();
-  const urls = publicPaths
+  const urls = publicSitemapPaths
     .map((path) => {
-      const loc = path === "/" ? `${baseUrl}/` : `${baseUrl}${path}`;
+      const loc = path === "/" ? `${CANONICAL_ORIGIN}/` : `${CANONICAL_ORIGIN}${path}`;
       const priority = path === "/" ? "0.9" : "0.8";
 
       return [
