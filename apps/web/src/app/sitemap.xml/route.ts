@@ -1,6 +1,9 @@
 const baseUrl = "https://www.cashworkspace.com";
 const publicPaths = ["/", "/fr", "/es", "/de", "/pt", "/ru"] as const;
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function escapeXml(value: string) {
   return value
     .replaceAll("&", "&amp;")
