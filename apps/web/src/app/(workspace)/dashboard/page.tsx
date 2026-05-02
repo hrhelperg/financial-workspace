@@ -1,4 +1,15 @@
-import { BriefcaseBusiness, CalendarDays, DollarSign, ReceiptText, Timer, WalletCards } from "lucide-react";
+import Link from "next/link";
+import {
+  BriefcaseBusiness,
+  CalendarDays,
+  CheckCircle2,
+  DollarSign,
+  Plus,
+  ReceiptText,
+  Timer,
+  TrendingUp,
+  WalletCards
+} from "lucide-react";
 import { Panel, PanelHeader } from "@financial-workspace/ui";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
@@ -11,8 +22,15 @@ import { getI18n } from "@/i18n/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+  searchParams: Promise<{
+    installed?: string;
+  }>;
+};
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const { locale, t } = await getI18n();
+  const params = await searchParams;
   const [metrics, recentInvoices, clients] = await Promise.all([
     getDashboardMetrics(),
     listInvoices(),
@@ -20,6 +38,8 @@ export default async function DashboardPage() {
   ]);
 
   const recent = recentInvoices.slice(0, 5);
+  const hasInstalledTemplate = Boolean(params.installed);
+  const showActivationState = hasInstalledTemplate || (metrics.totalClients === 0 && metrics.totalInvoices === 0);
 
   return (
     <div className="space-y-6">
@@ -31,6 +51,55 @@ export default async function DashboardPage() {
         actionIcon={ReceiptText}
         actionHref={localizePath("/invoices/new", locale)}
       />
+
+      {showActivationState ? (
+        <Panel>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-[#e1f3ef] text-[#0f5f59]">
+                <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div>
+                {hasInstalledTemplate ? (
+                  <p className="text-sm font-semibold text-[#0f5f59]">
+                    {t("dashboard.templateInstalled")}
+                  </p>
+                ) : null}
+                <h2 className="mt-1 text-xl font-semibold tracking-normal text-[#1f2933]">
+                  {t("dashboard.workspaceReadyTitle")}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#58645d]">
+                  {t("dashboard.workspaceReadyDescription")}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[430px]">
+              <Link
+                href={localizePath("/invoices/new", locale)}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#1f2933] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#11181d]"
+              >
+                <ReceiptText className="h-4 w-4" aria-hidden="true" />
+                {t("dashboard.nextCreateInvoice")}
+              </Link>
+              <Link
+                href={localizePath("/expenses", locale)}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-[#d8ded8] bg-white px-4 py-2 text-sm font-semibold text-[#1f2933] transition-colors hover:bg-[#f8faf7]"
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                {t("dashboard.nextAddExpense")}
+              </Link>
+              <Link
+                href={localizePath("/cashflow/forecast", locale)}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-[#d8ded8] bg-white px-4 py-2 text-sm font-semibold text-[#1f2933] transition-colors hover:bg-[#f8faf7]"
+              >
+                <TrendingUp className="h-4 w-4" aria-hidden="true" />
+                {t("dashboard.nextViewForecast")}
+              </Link>
+            </div>
+          </div>
+        </Panel>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard

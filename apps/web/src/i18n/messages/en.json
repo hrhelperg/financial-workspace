@@ -255,7 +255,13 @@
     "forecastDescription": "Expected yearly net position.",
     "forecastNote": "Expected income minus expected expenses.",
     "expectedIncome": "Expected income",
-    "expectedExpenses": "Expected expenses"
+    "expectedExpenses": "Expected expenses",
+    "templateInstalled": "Template installed successfully",
+    "workspaceReadyTitle": "Your workspace is ready",
+    "workspaceReadyDescription": "Start with the highest-value actions: create your first invoice, record an expense, or review the yearly forecast created for this workspace.",
+    "nextCreateInvoice": "Create invoice",
+    "nextAddExpense": "Add expense",
+    "nextViewForecast": "View forecast"
   },
   "clients": {
     "eyebrow": "Relationships",
